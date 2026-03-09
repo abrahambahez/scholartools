@@ -1,0 +1,47 @@
+# project progress log
+# append only — one entry per session, never edit previous entries
+# format:
+#
+# --- [YYYY-MM-DD] session [N] ---
+# completed: [list of tasks/features finished this session]
+# pending: [open tasks, by spec file and task ID]
+# decisions: [architectural choices not yet in an ADR]
+# broken: [anything known broken, even outside current scope]
+# next: [recommended starting point for next session]
+
+--- [project initialized] ---
+completed: project scaffold created
+pending: fill in CLAUDE.md, docs/product.md, docs/tech.md — then run /init
+decisions: none yet
+broken: none
+next: fill in docs/product.md first, then run /init to generate feature_list.json
+
+--- [2026-03-07] session 1 ---
+completed:
+  - docs/product.md, docs/vision.md, docs/tech.md, docs/structure.md, CLAUDE.md fully written
+  - 4 ADRs written: hexagonal+result-types, pdf-extraction, httpx, pydantic-all-the-way
+  - docs/feats/core-library.md (v0.4) — MVP feature design, all decisions locked
+  - specs/core-library.md — 14 acceptance criteria, 11 tasks, 6 risks
+  - feature_list.json populated with core-library (passes: true) + 6 future features
+  - All 11 spec tasks implemented:
+      task-01: pyproject.toml, Settings, config loader
+      task-02: Reference (CSL-JSON), all Result types, LibraryCtx, ports as Callable type aliases
+      task-03: local adapter via make_storage/make_filestore factory closures, atomic writes
+      task-04: citekey generation (author+year), collision resolution
+      task-05: CRUD service (add/get/update/delete/list) with _warnings on partial records
+      task-06: file service (link/unlink/move/list) with mime detection
+      task-07: PDF extraction — pdfplumber → LLM fallback via injected llm_extract closure
+      task-08: Crossref, Semantic Scholar, ArXiv, Latindex clients + fan-out search service
+      task-09: fetch service with identifier type detection (DOI/arXiv/ISSN)
+      task-10: __init__.py public API wiring — 12 sync functions over async services
+      task-11: E2E integration test — full agent workflow verified
+  - 86 tests passing (unit + integration)
+pending: none for core-library
+decisions:
+  - Functional Python style enforced: no service classes, ports as Callable type aliases,
+    LibraryCtx as bag of functions, factory closures for adapters
+  - Latindex first in source priority (Global South / Latin American research context)
+  - files_dir added to LibraryCtx (not pulled from global config inside services)
+broken: none
+next: deduplication feature (feature_list.json id: deduplication) — write docs/feats/deduplication.md first
+

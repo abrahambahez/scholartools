@@ -1,0 +1,50 @@
+[
+  {
+    "_comment": "Each feature starts with passes: false.",
+    "_comment2": "ONLY the passes field may be changed — by the agent, after verified end-to-end testing.",
+    "_comment3": "Never remove, reorder, or restructure entries. Append new ones at the end."
+  },
+  {
+    "id": "core-library",
+    "title": "Core library — CRUD, file management, search, fetch, PDF extraction",
+    "spec": "specs/001-core-library.md",
+    "passes": true,
+    "notes": "86 tests passing. Full E2E workflow verified. Local adapter, 4 API clients, two-stage PDF extraction, public sync API wired."
+  },
+  {
+    "id": "deduplication",
+    "title": "Full deduplication — detect and resolve duplicate references beyond DOI matching",
+    "spec": null,
+    "passes": false
+  },
+  {
+    "id": "audit",
+    "title": "Database audit — integrity checks, orphaned files, missing archives, schema violations",
+    "spec": null,
+    "passes": false
+  },
+  {
+    "id": "cloud-backends",
+    "title": "Cloud backends — S3+DynamoDB and MongoDB+GCS adapters",
+    "spec": null,
+    "passes": false
+  },
+  {
+    "id": "semantic-search",
+    "title": "Semantic search — natural language queries across the local library",
+    "spec": null,
+    "passes": false
+  },
+  {
+    "id": "citation-graph",
+    "title": "Citation graph analysis — influence chains, gap detection, research lineages",
+    "spec": null,
+    "passes": false
+  },
+  {
+    "id": "social-annotation",
+    "title": "Social annotation — structured, shareable annotations on reference objects",
+    "spec": null,
+    "passes": false
+  }
+]

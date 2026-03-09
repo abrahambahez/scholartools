@@ -1,0 +1,44 @@
+{
+  "manifest_version": "0.3",
+  "name": "scholartools",
+  "version": "0.1.0",
+  "description": "Agent-native reference management for researchers",
+  "author": {
+    "name": "Abraham Bahez"
+  },
+  "server": {
+    "type": "python",
+    "entry_point": "src/scholartools/mcp.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": ["run", "python", "${__dirname}/src/scholartools/mcp.py"],
+      "env": {
+        "ANTHROPIC_API_KEY": "${user_config.ANTHROPIC_API_KEY}",
+        "SCHOLARTOOLS_LIBRARY_PATH": "${user_config.SCHOLARTOOLS_LIBRARY_PATH}",
+        "SCHOLARTOOLS_FILES_DIR": "${user_config.SCHOLARTOOLS_FILES_DIR}"
+      }
+    }
+  },
+  "tools_generated": true,
+  "user_config": {
+    "ANTHROPIC_API_KEY": {
+      "type": "string",
+      "title": "Anthropic API Key",
+      "description": "Optional — without it, PDF extraction uses pdfplumber only (no LLM vision fallback).",
+      "required": false,
+      "sensitive": true
+    },
+    "SCHOLARTOOLS_LIBRARY_PATH": {
+      "type": "string",
+      "title": "Library Path",
+      "description": "Path to your library JSON file (e.g. /Users/you/research/library.json)",
+      "required": false
+    },
+    "SCHOLARTOOLS_FILES_DIR": {
+      "type": "string",
+      "title": "Files Directory",
+      "description": "Path to your PDF archive directory (e.g. /Users/you/research/files)",
+      "required": false
+    }
+  }
+}
