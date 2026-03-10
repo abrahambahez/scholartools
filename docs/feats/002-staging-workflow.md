@@ -1,81 +1,65 @@
 # feat 002: staging workflow
 
-version: 0.1
+version: 0.4
 status: draft
 
 ## problem
 
 The current library is single-state: every ingested reference is immediately a committed record. This does not match how research actually works. Exploration is iterative — references are gathered before their value is known, evaluated during reading, and only a subset earns a permanent place in the library. Without a staging layer, the library accumulates noise and the human must curate manually.
 
-The original bib-file workflow had this problem: no QA gate meant the file drifted messy over time. CSL-JSON solves format drift, but only if normalization happens at the point of intake, not at commit time.
-
 ## the workflow this feature replicates
 
 ```
 [external source / local PDF]
         ↓
-    stage()           ← normalize to CSL-JSON immediately
+    stage()           ← normalize to CSL-JSON, assign citekey immediately
         ↓
   [evaluate: read, annotate, discard or keep]
         ↓               ← iterative, not sequential
-    merge()           ← QA gate: validate schema, detect duplicates,
-        ↓                 archive file, assign citekey
+    merge()           ← QA gate: normalize, detect duplicates,
+        ↓                 validate schema, archive file
    [library]          ← production, ground truth
-        ↓
-   export()           ← pandoc / Word XML / Google Docs XML
 ```
 
 Staging and reading are interleaved: new references surface during reading and re-enter staging. The cycle repeats until writing begins, at which point all needed references must be in the library.
 
 ## two-store model
 
+Both stores use the same `Reference` model — no schema changes. Status is implicit from location: records in `staging.json` are staged; records in `library.json` are production. Files follow the same rule.
+
 **Staging store** (`~/.scholartools/staging.json`)
-- CSL-JSON records with an added `_stage` metadata block
-- `_stage.status`: `new` | `reading` | `accepted` | `rejected`
-- `_stage.added_at`: ISO timestamp
-- `_stage.source`: how it entered (`doi`, `isbn`, `arxiv`, `pdf`, `freeform`)
-- No citekey — citekeys are assigned at merge time
-- Files live in `~/.scholartools/staging/` (unconverted, as received)
+- Same `Reference` schema as the library — citekey assigned at stage time
+- Files live in `~/.scholartools/staging/`
 
 **Library store** (`~/.scholartools/library.json`)
 - Current production store — unchanged
-- Full CSL-JSON records with assigned citekeys
 - Files live in `~/.scholartools/files/`
+
+Same adapter, different path — no separate adapter needed.
 
 ## merge/QA gate
 
-`merge(citekeys?)` promotes staged records with `status: accepted` (or a provided list) through:
+`merge(omit?)` promotes all staged records by default; pass an optional list of citekeys to skip. Steps run per record:
 
-1. **Schema validation** — required CSL-JSON fields present and typed correctly
-2. **Duplicate detection** — check against library by DOI, title similarity, or existing citekey
-3. **File archival** — if a staging file exists, move it to `~/.scholartools/files/` and update the record's `URL` or `note` field
-4. **Citekey assignment** — generate and assign a citekey if absent
+1. **Normalization** — translate fields from other conventions (BibTeX, RIS, etc.) to CSL-JSON; strip non-CSL fields
+2. **Duplicate detection** — check against library by normalized title or ISBN (see below)
+3. **Schema validation** — required CSL-JSON fields present and typed correctly
+4. **File archival** — if a staging file exists, move it to `~/.scholartools/files/`
 5. **Promotion** — write to library, remove from staging
 
-On any QA failure, the record stays in staging with `_stage.qa_errors` populated. The agent surfaces these to the human and waits for resolution.
+Errors are transient — returned in the `MergeResult` but never persisted. A record that fails any step is not promoted and stays in staging. The agent surfaces errors and the human must fix or delete the record. No stored error state, no `qa_errors` field on `Reference`.
 
-## export
+## duplicate detection
 
-`export(format, citekeys?)` serializes library records (or a subset) for writing tools:
-- `pandoc` — CSL-JSON passthrough, already valid
-- `word` — OOXML bibliography XML (`<b:Sources>` schema)
-- `googledoc` — Google Docs citation XML
+A staged record is a duplicate if any of these match an existing library record:
 
-Export is read-only and does not modify the library.
+- **Normalized title match** — strip diacritics, lowercase, remove `"'?` and punctuation, then exact string equality
+- **ISBN match** — same ISBN-10 or ISBN-13 (normalized, no hyphens)
 
-## open questions
+DOI is intentionally excluded: a book and its chapters share a DOI family but are distinct records.
 
-1. Should staging support bulk status update (`mark_accepted(filter)`) or only per-record? The iterative reading pattern suggests bulk is important.
-2. Does the staging store need a separate adapter, or is it the same adapter as the library with a different path? Preference: same adapter, different path — avoids duplication.
-3. PDF-to-text conversion for the reading phase: is this in scope for scholartools or handled by the reading skills layer above it? Tentative answer: out of scope for this feature, the reading skills call scholartools only for staging/merge.
-4. Should `merge` be callable without arguments (merge all accepted) or require explicit selection? Safer default: require explicit citekey list or status filter — prevents accidental bulk promotion.
+## decisions
 
-## impact on MCP tool contract
-
-The 5-tool proposal from the MCP design session predates this feature. With staging:
-- `add_reference` → writes to staging by default, not library
-- A new `merge_references` tool is needed (or `add_reference` gets a `target` parameter)
-- `find_references` needs a `store` parameter to disambiguate staging vs library queries
-- `audit_library` should optionally include a staging summary
-
-The MCP contract should not be finalized until this feature is specced and approved.
+- `merge()` is bulk by default; `omit` is the exception — matches the organic multi-record nature of staging
+- `list_staged()` covers inspection before merging — no separate bulk status needed
+- PDF-to-text conversion: out of scope — the reading skills layer calls scholartools only for staging/merge

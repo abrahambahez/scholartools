@@ -55,3 +55,26 @@ pending: none
 decisions: none
 broken: none
 next: deduplication feature — write docs/feats/deduplication.md first
+
+--- [2026-03-09] session 3 ---
+completed:
+  - feat 002 staging-workflow fully implemented and verified
+  - docs/feats/002-staging-workflow.md iterated to v0.4 (export dropped, lean schema, bulk merge with omit, transient errors, cleanup on merge)
+  - specs/002-staging-workflow.md written and approved
+  - task-01: staging storage adapter (make_staging_storage, LibraryCtx extended, auto-create)
+  - task-02: added_at on Reference, StageResult/ListStagedResult/DeleteStagedResult/MergeResult models
+  - task-03: services/staging.py (stage_reference, list_staged, delete_staged)
+  - task-04: services/duplicates.py (normalize_title, is_duplicate — title + ISBN, DOI excluded)
+  - task-05: services/merge.py (normalize → deduplicate → validate → archive → promote; cleanup after merge)
+  - task-06: public API wired (__init__.py), 4 integration tests in tests/integration/test_staging_workflow.py
+  - 176 tests passing (unit + integration)
+  - feature_list.json updated: staging-workflow passes: true
+pending: none
+decisions:
+  - Export dropped from feat 002 — out of scope, deferred to its own feature
+  - Status implicit from store location (no status field on Reference)
+  - Errors transient (in MergeResult only, never persisted)
+  - merge() bulk by default, omit= for exceptions
+  - Validate schema before file archival to prevent orphaned files
+broken: none
+next: deduplication feature or MCP server (feat 003)
