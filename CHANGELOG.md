@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-03-10
+
+### Added
+- `filter_references` — local library search with five optional predicates: `query` (title substring), `author` (family/literal substring), `year` (exact), `ref_type` (exact CSL type), `has_file` (bool); `staging=True` routes to staging store
+- `scholartools-test` CLI command — launches interactive Python shell with all public functions pre-imported
+
+### Changed
+- `search_references` renamed to `discover_references` to clarify it queries external APIs, not the local library
+
 ## [0.2.0] - 2026-03-09
 
 ### Added
