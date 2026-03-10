@@ -1,7 +1,7 @@
 # feat: core library — MVP
 
-version: 0.4
-status: draft
+version: 0.5
+status: current
 
 ## what this is
 
@@ -30,15 +30,17 @@ Out (deferred):
 - Deduplication
 - Audit
 - Cloud adapters (S3, DynamoDB, MongoDB, GCS)
-- `list_references` filtering — agents filter in Python after receiving the full list
+- `list_references` filtering — agents use `get_reference` or filter after listing
+- Configurable page size (fixed at 10)
 - Semantic search, citation graphs, social annotation
 
 ## decisions (locked)
 
-- **Partial records on read**: `get_reference` and `list_references` return records with a `warnings: list[str]` field populated when required fields are missing. Records are never silently dropped. The agent-human interface allows us to be strict about surfacing problems.
+- **Partial records on read**: `get_reference` returns a full `Reference` with `_warnings: list[str]` populated when required fields are missing. List operations surface this as `has_warnings: bool` on `ReferenceRow`. Records are never silently dropped.
+- **List projection**: `list_references` and `list_files` return `ReferenceRow`/`FileRow` summaries, not full records. Use `get_reference` when the full record is needed.
+- **Pagination**: all list operations return 10 records per page, sorted by citekey ascending. Page size is not configurable. Agents paginate by passing `page=N`.
 - **FileRecord placement**: embedded in the `Reference` object as `_file`. Single `library.json`, no separate index.
 - **Atomic writes**: write to `.library.tmp.json`, rename to `library.json`. No lock file for now — single-agent assumption.
-- **list_references filtering**: returns all records. Agents filter in Python at the consumer layer. No query language in v1.
 
 ## data model
 
@@ -70,10 +72,37 @@ Missing any of these → `_warnings` populated, record still returned.
 
 ```python
 class FileRecord(BaseModel):
-    path: str        # relative to data/files/, e.g. "smith2020.pdf"
+    path: str        # absolute path, always named {citekey}.{ext}
     mime_type: str   # "application/pdf" or "application/epub+zip"
     size_bytes: int
     added_at: str    # ISO 8601
+```
+
+### ReferenceRow — list projection
+
+Returned by `list_references` and `list_staged`. Not a full record — use `get_reference` for the complete `Reference`.
+
+```python
+class ReferenceRow(BaseModel):
+    citekey: str
+    title: str | None = None
+    authors: str | None = None   # "Family, Given; Family, Given[; et al.]" — up to 5, then et al.
+    year: int | None = None
+    doi: str | None = None
+    has_file: bool = False
+    has_warnings: bool = False   # True if any required field is missing
+```
+
+### FileRow — files list projection
+
+Returned by `list_files`. Adds `citekey` which `FileRecord` does not carry.
+
+```python
+class FileRow(BaseModel):
+    citekey: str
+    path: str
+    mime_type: str
+    size_bytes: int
 ```
 
 ### Library (database)
@@ -137,7 +166,7 @@ get_reference(citekey: str) -> GetResult
 update_reference(citekey: str, fields: dict) -> UpdateResult
 rename_reference(old_key: str, new_key: str) -> RenameResult
 delete_reference(citekey: str) -> DeleteResult
-list_references() -> ListResult
+list_references(page: int = 1) -> ListResult   # sorted by citekey, 10/page
 ```
 
 ### Search and fetch
@@ -155,7 +184,7 @@ fetch_reference(identifier: str) -> FetchResult
 link_file(citekey: str, file_path: str) -> LinkResult
 unlink_file(citekey: str) -> UnlinkResult
 move_file(citekey: str, dest_name: str) -> MoveResult
-list_files() -> FilesListResult
+list_files(page: int = 1) -> FilesListResult   # sorted by citekey, 10/page
 ```
 
 ### PDF/EPUB extraction
@@ -187,8 +216,10 @@ class GetResult(BaseModel):
     error: str | None = None
 
 class ListResult(BaseModel):
-    references: list[Reference]
+    references: list[ReferenceRow]
     total: int
+    page: int
+    pages: int
 
 class UpdateResult(BaseModel):
     citekey: str | None = None
@@ -234,8 +265,10 @@ class MoveResult(BaseModel):
     error: str | None = None
 
 class FilesListResult(BaseModel):
-    files: list[FileRecord]
+    files: list[FileRow]
     total: int
+    page: int
+    pages: int
 ```
 
 ## external API sources

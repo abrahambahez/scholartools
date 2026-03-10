@@ -1,7 +1,7 @@
 # feat 002: staging workflow
 
-version: 0.4
-status: draft
+version: 0.5
+status: current
 
 ## problem
 
@@ -44,7 +44,7 @@ Same adapter, different path — no separate adapter needed.
 1. **Normalization** — translate fields from other conventions (BibTeX, RIS, etc.) to CSL-JSON; strip non-CSL fields
 2. **Duplicate detection** — check against library by normalized title or ISBN (see below)
 3. **Schema validation** — required CSL-JSON fields present and typed correctly
-4. **File archival** — if a staging file exists, move it to `~/.scholartools/files/`
+4. **File archival** — if a staging file exists, rename it to `{citekey}.{ext}` and copy to `~/.scholartools/files/`; original staging file deleted after promotion
 5. **Promotion** — write to library, remove from staging
 
 Errors are transient — returned in the `MergeResult` but never persisted. A record that fails any step is not promoted and stays in staging. The agent surfaces errors and the human must fix or delete the record. No stored error state, no `qa_errors` field on `Reference`.
@@ -61,5 +61,5 @@ DOI is intentionally excluded: a book and its chapters share a DOI family but ar
 ## decisions
 
 - `merge()` is bulk by default; `omit` is the exception — matches the organic multi-record nature of staging
-- `list_staged()` covers inspection before merging — no separate bulk status needed
+- `list_staged(page=1)` returns `ReferenceRow` projections, sorted by citekey ascending, 10 per page — same contract as `list_references`. Use `get_reference` for the full staged record.
 - PDF-to-text conversion: out of scope — the reading skills layer calls scholartools only for staging/merge
