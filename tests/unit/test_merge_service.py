@@ -257,6 +257,25 @@ async def test_merge_archives_file_for_valid_record():
     assert copied_files[0][1] == "/data/files/smith2020.pdf"
 
 
+async def test_merge_renames_file_to_citekey():
+    """File is always archived as citekey.ext regardless of original filename."""
+    file_rec = {
+        "path": "/tmp/staging/original-name.pdf",
+        "mime_type": "application/pdf",
+        "size_bytes": 100,
+        "added_at": "2025-01-01T00:00:00+00:00",
+    }
+    rec = {**valid_record("smith2020"), "_file": file_rec}
+    ctx, _, lib_store, _, _, copied_files, _ = make_ctx(staged=[rec])
+
+    result = await merge(None, ctx)
+
+    assert "smith2020" in result.promoted
+    assert copied_files[0][1] == "/data/files/smith2020.pdf"
+    promoted = next(r for r in lib_store if r["id"] == "smith2020")
+    assert promoted["_file"]["path"] == "/data/files/smith2020.pdf"
+
+
 # --- staging cleanup after promotion ---
 
 

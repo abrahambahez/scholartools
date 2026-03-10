@@ -11,12 +11,14 @@ from pathlib import Path
 
 from scholartools.models import (
     FileRecord,
+    FileRow,
     FilesListResult,
     LibraryCtx,
     LinkResult,
     MoveResult,
     UnlinkResult,
 )
+from scholartools.services.list_helpers import paginate
 
 
 async def link_file(citekey: str, file_path: str, ctx: LibraryCtx) -> LinkResult:
@@ -69,12 +71,18 @@ async def move_file(citekey: str, dest_name: str, ctx: LibraryCtx) -> MoveResult
     return MoveResult(error=f"not found: {citekey}")
 
 
-async def list_files(ctx: LibraryCtx) -> FilesListResult:
+async def list_files(ctx: LibraryCtx, page: int = 1) -> FilesListResult:
     records = await ctx.read_all()
-    file_records = [
-        FileRecord.model_validate(r["_file"]) for r in records if r.get("_file")
-    ]
-    return FilesListResult(files=file_records, total=len(file_records))
+    rows = sorted(
+        [
+            FileRow(citekey=r["id"], **r["_file"])
+            for r in records
+            if r.get("_file") and r.get("id")
+        ],
+        key=lambda f: f.citekey,
+    )
+    items, page, pages = paginate(rows, page)
+    return FilesListResult(files=items, total=len(rows), page=page, pages=pages)
 
 
 def _detect_mime(path: str) -> str:

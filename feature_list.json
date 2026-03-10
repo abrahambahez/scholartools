@@ -19,6 +19,13 @@
     "notes": "176 tests passing (unit + integration). Staging CRUD, merge pipeline, duplicate detection by normalized title/ISBN, file archival and cleanup, public sync API wired."
   },
   {
+    "id": "list-pagination",
+    "title": "List pagination — paginated, projected summary for all list endpoints",
+    "spec": "specs/003-list-pagination.md",
+    "passes": true,
+    "notes": "193 tests passing. ReferenceRow/FileRow projection, 10-record pages, citekey sort, merge file rename fix included."
+  },
+  {
     "id": "deduplication",
     "title": "Full deduplication — detect and resolve duplicate references beyond DOI matching",
     "spec": null,

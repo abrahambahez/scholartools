@@ -65,7 +65,7 @@ async def test_full_workflow_stage_list_merge_verify(tmp_path):
 
     list_result = await list_staged(ctx)
     assert list_result.total == 1
-    assert list_result.references[0].id == citekey
+    assert list_result.references[0].citekey == citekey
 
     merge_result = await merge(None, ctx)
     assert citekey in merge_result.promoted
@@ -97,7 +97,7 @@ async def test_duplicate_detection_stays_in_staging(tmp_path):
     assert "smith2024" in merge_result.errors[dup_key]
 
     staged_after = await list_staged(ctx)
-    assert any(r.id == dup_key for r in staged_after.references)
+    assert any(r.citekey == dup_key for r in staged_after.references)
 
 
 @pytest.mark.integration
@@ -122,7 +122,7 @@ async def test_skip_list_one_promoted_one_skipped(tmp_path):
     assert not any(r["id"] == key_b for r in library_records)
 
     staged_after = await list_staged(ctx)
-    assert any(r.id == key_b for r in staged_after.references)
+    assert any(r.citekey == key_b for r in staged_after.references)
 
 
 @pytest.mark.integration
@@ -145,7 +145,7 @@ async def test_file_archival_on_merge(tmp_path):
     assert citekey in merge_result.promoted
 
     files_dir = tmp_path / "files"
-    archived_file = files_dir / src_file.name
+    archived_file = files_dir / f"{citekey}.pdf"
     assert archived_file.exists()
 
     assert not staged_file.exists()

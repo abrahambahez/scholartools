@@ -86,9 +86,28 @@ class GetResult(BaseModel):
     error: str | None = None
 
 
+class ReferenceRow(BaseModel):
+    citekey: str
+    title: str | None = None
+    authors: str | None = None
+    year: int | None = None
+    doi: str | None = None
+    has_file: bool = False
+    has_warnings: bool = False
+
+
+class FileRow(BaseModel):
+    citekey: str
+    path: str
+    mime_type: str
+    size_bytes: int
+
+
 class ListResult(BaseModel):
-    references: list[Reference]
+    references: list[ReferenceRow]
     total: int
+    page: int = 1
+    pages: int = 1
 
 
 class UpdateResult(BaseModel):
@@ -144,8 +163,10 @@ class MoveResult(BaseModel):
 
 
 class FilesListResult(BaseModel):
-    files: list[FileRecord]
+    files: list[FileRow]
     total: int
+    page: int = 1
+    pages: int = 1
 
 
 class LocalSettings(BaseModel):
@@ -214,8 +235,10 @@ class StageResult(BaseModel):
 
 
 class ListStagedResult(BaseModel):
-    references: list[Reference]
+    references: list[ReferenceRow]
     total: int
+    page: int = 1
+    pages: int = 1
 
 
 class DeleteStagedResult(BaseModel):

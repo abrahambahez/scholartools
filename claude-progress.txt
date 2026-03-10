@@ -78,3 +78,24 @@ decisions:
   - Validate schema before file archival to prevent orphaned files
 broken: none
 next: deduplication feature or MCP server (feat 003)
+
+--- [2026-03-10] session 3 ---
+completed:
+  - specs/003-list-pagination.md written (8 tasks)
+  - docs/feats/003-list-pagination.md written
+  - task-01: fix merge file rename — dest now uses citekey.ext not original filename
+  - task-02: add ReferenceRow, FileRow to models.py; update ListResult, ListStagedResult, FilesListResult with page/pages
+  - task-03: services/list_helpers.py — format_authors, paginate, to_reference_row
+  - task-04: store.list_references(page=1) — sorted by citekey, paginated, projects to ReferenceRow
+  - task-05: staging.list_staged(page=1) — citekey sort (replaces added_at desc), paginated, ReferenceRow
+  - task-06: files.list_files(page=1) — FileRow with citekey, paginated
+  - task-07: __init__.py — page param on all three list wrappers, exports ReferenceRow/FileRow
+  - task-08: research_session.py — _list, _status, _list_staged updated; all tests updated
+  - 193 tests passing (176 unit + 4 integration + 13 list_helpers)
+pending: none for 003-list-pagination — mark passes: true after this session
+decisions:
+  - list_helpers.py as shared module: justified by reuse across 3 services
+  - _status in research_session counts page 1 only; noted with "note" field when pages > 1 (known limitation)
+  - list_staged sort changed from added_at desc to citekey asc (uniform contract)
+broken: none
+next: update feature_list.json passes for staging-workflow (still true) and add 003-list-pagination entry; then deduplication feature

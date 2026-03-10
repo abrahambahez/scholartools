@@ -130,7 +130,7 @@ async def test_list_returns_all():
     ctx, _ = make_ctx([{"id": "a", "type": "book"}, {"id": "b", "type": "book"}])
     result = await list_references(ctx)
     assert result.total == 2
-    assert {r.id for r in result.references} == {"a", "b"}
+    assert {r.citekey for r in result.references} == {"a", "b"}
 
 
 async def test_list_empty():
@@ -138,6 +138,32 @@ async def test_list_empty():
     result = await list_references(ctx)
     assert result.total == 0
     assert result.references == []
+
+
+async def test_list_sorted_by_citekey():
+    ctx, _ = make_ctx([{"id": "z", "type": "book"}, {"id": "a", "type": "book"}])
+    result = await list_references(ctx)
+    assert result.references[0].citekey == "a"
+    assert result.references[1].citekey == "z"
+
+
+async def test_list_pagination():
+    records = [{"id": f"ref{i:02d}", "type": "book"} for i in range(25)]
+    ctx, _ = make_ctx(records)
+    p1 = await list_references(ctx, page=1)
+    p3 = await list_references(ctx, page=3)
+    assert p1.total == 25
+    assert p1.pages == 3
+    assert len(p1.references) == 10
+    assert len(p3.references) == 5
+
+
+async def test_list_page_out_of_range_returns_last_page():
+    records = [{"id": f"ref{i:02d}", "type": "book"} for i in range(5)]
+    ctx, _ = make_ctx(records)
+    result = await list_references(ctx, page=99)
+    assert len(result.references) == 5
+    assert result.page == 1
 
 
 async def test_rename_updates_id():

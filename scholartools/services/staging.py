@@ -11,8 +11,7 @@ from scholartools.models import (
     StageResult,
 )
 from scholartools.services import citekeys
-
-_REQUIRED = ("id", "type", "title", "author", "issued")
+from scholartools.services.list_helpers import paginate, to_reference_row
 
 
 async def stage_reference(
@@ -49,15 +48,15 @@ async def stage_reference(
         return StageResult(error=str(exc))
 
 
-async def list_staged(ctx: LibraryCtx) -> ListStagedResult:
+async def list_staged(ctx: LibraryCtx, page: int = 1) -> ListStagedResult:
     try:
         records = await ctx.staging_read_all()
-        refs = sorted(
-            (_to_reference(r) for r in records),
-            key=lambda r: r.added_at or datetime.min.replace(tzinfo=timezone.utc),
-            reverse=True,
+        sorted_records = sorted(records, key=lambda r: r.get("id", ""))
+        rows = [to_reference_row(r) for r in sorted_records]
+        items, page, pages = paginate(rows, page)
+        return ListStagedResult(
+            references=items, total=len(rows), page=page, pages=pages
         )
-        return ListStagedResult(references=refs, total=len(refs))
     except Exception:
         return ListStagedResult(references=[], total=0)
 
@@ -82,11 +81,3 @@ async def delete_staged(citekey: str, ctx: LibraryCtx) -> DeleteStagedResult:
         return DeleteStagedResult(deleted=True)
     except Exception as exc:
         return DeleteStagedResult(deleted=False, error=str(exc))
-
-
-def _to_reference(record: dict) -> Reference:
-    ref = Reference.model_validate(record)
-    missing = [f for f in _REQUIRED if not record.get(f)]
-    if missing:
-        ref.warnings = [f"missing: {f}" for f in missing]
-    return ref

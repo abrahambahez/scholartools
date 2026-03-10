@@ -151,28 +151,24 @@ async def test_list_staged_returns_all():
     ctx, _, _, _ = make_ctx(records)
     result = await list_staged(ctx)
     assert result.total == 2
-    assert {r.id for r in result.references} == {"a", "b"}
+    assert {r.citekey for r in result.references} == {"a", "b"}
 
 
-async def test_list_staged_sorted_descending():
+async def test_list_staged_sorted_by_citekey():
     records = [
-        {"id": "older", "type": "book", "added_at": "2024-01-01T00:00:00+00:00"},
-        {"id": "newer", "type": "book", "added_at": "2025-06-01T00:00:00+00:00"},
+        {"id": "zebra2024", "type": "book", "added_at": "2025-06-01T00:00:00+00:00"},
+        {"id": "alpha2024", "type": "book", "added_at": "2024-01-01T00:00:00+00:00"},
     ]
     ctx, _, _, _ = make_ctx(records)
     result = await list_staged(ctx)
-    assert result.references[0].id == "newer"
-    assert result.references[1].id == "older"
+    assert result.references[0].citekey == "alpha2024"
+    assert result.references[1].citekey == "zebra2024"
 
 
-async def test_list_staged_warnings_for_missing_fields():
+async def test_list_staged_has_warnings_for_missing_fields():
     ctx, _, _, _ = make_ctx([{"id": "x", "type": "book"}])
     result = await list_staged(ctx)
-    ref = result.references[0]
-    warning_fields = " ".join(ref.warnings)
-    assert "title" in warning_fields
-    assert "author" in warning_fields
-    assert "issued" in warning_fields
+    assert result.references[0].has_warnings is True
 
 
 async def test_list_staged_empty():

@@ -95,8 +95,10 @@ def test_stage_result_failure():
 
 
 def test_list_staged_result():
-    refs = [Reference(id="a", type="book"), Reference(id="b", type="article-journal")]
-    result = ListStagedResult(references=refs, total=2)
+    from scholartools.models import ReferenceRow
+
+    rows = [ReferenceRow(citekey="a"), ReferenceRow(citekey="b")]
+    result = ListStagedResult(references=rows, total=2)
     assert result.total == 2
     assert len(result.references) == 2
 

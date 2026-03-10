@@ -175,5 +175,5 @@ async def test_list_files(tmp_path):
     )
     result = await list_files(ctx)
     assert result.total == 2
-    paths = {f.path for f in result.files}
-    assert paths == {"a.pdf", "c.epub"}
+    citekeys = {f.citekey for f in result.files}
+    assert citekeys == {"a", "c"}

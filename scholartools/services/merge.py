@@ -100,7 +100,7 @@ async def merge(omit: list[str] | None, ctx: LibraryCtx) -> MergeResult:
 
         if file_path:
             src = file_path
-            dest = str(Path(ctx.files_dir) / Path(file_path).name)
+            dest = str(Path(ctx.files_dir) / f"{citekey}{Path(file_path).suffix}")
             try:
                 await ctx.copy_file(src, dest)
                 normalized["_file"] = {**normalized["_file"], "path": dest}

@@ -19,6 +19,7 @@ from scholartools.models import (
     DeleteStagedResult,
     ExtractResult,
     FetchResult,
+    FileRow,
     FilesListResult,
     GetResult,
     LibraryCtx,
@@ -28,6 +29,7 @@ from scholartools.models import (
     MergeResult,
     MoveResult,
     Reference,
+    ReferenceRow,
     RenameResult,
     SearchResult,
     StageResult,
@@ -144,8 +146,8 @@ def delete_reference(citekey: str) -> DeleteResult:
     return _run(store.delete_reference(citekey, _get_ctx()))
 
 
-def list_references() -> ListResult:
-    return _run(store.list_references(_get_ctx()))
+def list_references(page: int = 1) -> ListResult:
+    return _run(store.list_references(_get_ctx(), page))
 
 
 def search_references(
@@ -176,8 +178,8 @@ def move_file(citekey: str, dest_name: str) -> MoveResult:
     return _run(files.move_file(citekey, dest_name, _get_ctx()))
 
 
-def list_files() -> FilesListResult:
-    return _run(files.list_files(_get_ctx()))
+def list_files(page: int = 1) -> FilesListResult:
+    return _run(files.list_files(_get_ctx(), page))
 
 
 def stage_reference(ref: dict, file_path: str | None = None) -> StageResult:
@@ -188,8 +190,8 @@ def stage_reference(ref: dict, file_path: str | None = None) -> StageResult:
     )
 
 
-def list_staged() -> ListStagedResult:
-    return _run(staging_service.list_staged(_get_ctx()))
+def list_staged(page: int = 1) -> ListStagedResult:
+    return _run(staging_service.list_staged(_get_ctx(), page))
 
 
 def delete_staged(citekey: str) -> DeleteStagedResult:

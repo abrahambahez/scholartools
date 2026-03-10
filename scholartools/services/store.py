@@ -11,6 +11,7 @@ from scholartools.models import (
     UpdateResult,
 )
 from scholartools.services import citekeys
+from scholartools.services.list_helpers import paginate, to_reference_row
 
 _REQUIRED = ("id", "type", "title", "author", "issued")
 
@@ -86,10 +87,12 @@ async def delete_reference(citekey: str, ctx: LibraryCtx) -> DeleteResult:
     return DeleteResult(deleted=True)
 
 
-async def list_references(ctx: LibraryCtx) -> ListResult:
+async def list_references(ctx: LibraryCtx, page: int = 1) -> ListResult:
     records = await ctx.read_all()
-    references = [_to_reference(r) for r in records]
-    return ListResult(references=references, total=len(references))
+    sorted_records = sorted(records, key=lambda r: r.get("id", ""))
+    rows = [to_reference_row(r) for r in sorted_records]
+    items, page, pages = paginate(rows, page)
+    return ListResult(references=items, total=len(rows), page=page, pages=pages)
 
 
 def _to_reference(record: dict) -> Reference:
