@@ -16,6 +16,7 @@ from scholartools.config import load_settings
 from scholartools.models import (
     AddResult,
     DeleteResult,
+    DeleteStagedResult,
     ExtractResult,
     FetchResult,
     FilesListResult,
@@ -23,13 +24,19 @@ from scholartools.models import (
     LibraryCtx,
     LinkResult,
     ListResult,
+    ListStagedResult,
+    MergeResult,
     MoveResult,
+    Reference,
     RenameResult,
     SearchResult,
+    StageResult,
     UnlinkResult,
     UpdateResult,
 )
 from scholartools.services import extract, fetch, files, search, store
+from scholartools.services import merge as merge_service
+from scholartools.services import staging as staging_service
 
 _ctx: LibraryCtx | None = None
 
@@ -171,3 +178,23 @@ def move_file(citekey: str, dest_name: str) -> MoveResult:
 
 def list_files() -> FilesListResult:
     return _run(files.list_files(_get_ctx()))
+
+
+def stage_reference(ref: dict, file_path: str | None = None) -> StageResult:
+    return _run(
+        staging_service.stage_reference(
+            Reference.model_validate(ref), file_path, _get_ctx()
+        )
+    )
+
+
+def list_staged() -> ListStagedResult:
+    return _run(staging_service.list_staged(_get_ctx()))
+
+
+def delete_staged(citekey: str) -> DeleteStagedResult:
+    return _run(staging_service.delete_staged(citekey, _get_ctx()))
+
+
+def merge(omit: list[str] | None = None) -> MergeResult:
+    return _run(merge_service.merge(omit, _get_ctx()))

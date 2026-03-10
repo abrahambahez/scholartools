@@ -1,8 +1,10 @@
+import mimetypes
 from datetime import datetime, timezone
 from pathlib import Path
 
 from scholartools.models import (
     DeleteStagedResult,
+    FileRecord,
     LibraryCtx,
     ListStagedResult,
     Reference,
@@ -32,6 +34,13 @@ async def stage_reference(
             src = Path(file_path).resolve()
             dest = str(Path(ctx.staging_dir) / src.name)
             await ctx.staging_copy_file(str(src), dest)
+            mime, _ = mimetypes.guess_type(str(src))
+            ref_dict["_file"] = FileRecord(
+                path=dest,
+                mime_type=mime or "application/octet-stream",
+                size_bytes=src.stat().st_size,
+                added_at=datetime.now(timezone.utc).isoformat(),
+            ).model_dump()
 
         records.append(ref_dict)
         await ctx.staging_write_all(records)

@@ -42,7 +42,7 @@ def _normalize_fields(record: dict) -> dict:
         except (ValueError, TypeError):
             pass
 
-    clean = ref.model_dump(by_alias=True, exclude_none=True)
+    clean = ref.model_dump(mode="json", by_alias=True, exclude_none=True)
     clean.pop("_warnings", None)
     for bibtex_key in _BIBTEX_MAP:
         clean.pop(bibtex_key, None)
