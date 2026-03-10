@@ -14,6 +14,9 @@ dependencies = [
     "anthropic>=0.40",
 ]
 
+[project.scripts]
+scholartools-test = "scholartools._shell:main"
+
 [dependency-groups]
 dev = [
     "pytest>=8.0",
