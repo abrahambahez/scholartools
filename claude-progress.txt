@@ -99,3 +99,21 @@ decisions:
   - list_staged sort changed from added_at desc to citekey asc (uniform contract)
 broken: none
 next: update feature_list.json passes for staging-workflow (still true) and add 003-list-pagination entry; then deduplication feature
+
+--- [2026-03-10] session 4 ---
+completed:
+  - feat 004 local-filter fully implemented and verified
+  - docs/feats/004-local-filter.md written (v0.1)
+  - specs/004-local-filter.md written with 12 acceptance criteria, 3 tasks
+  - task-01: rename search_references → discover_references (services/search.py, __init__.py, tests)
+  - task-02: filter_references service in store.py (5 predicates + staging bool); sync wrapper in __init__.py
+  - task-03: 17 unit tests in tests/unit/test_filter.py — all pass
+  - 210 tests passing (unit only)
+  - feature_list.json: local-filter entry added with passes: true
+pending: none
+decisions:
+  - staging=bool routes to staging_read_all vs read_all — same ListResult return type for both
+  - _author_matches and _get_year as private helpers in store.py (not list_helpers) — filter-specific logic
+  - query only matches title (not abstract/keywords) — full-text deferred to semantic-search feature
+broken: none
+next: deduplication feature — write docs/feats/005-deduplication.md first

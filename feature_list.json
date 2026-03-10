@@ -26,6 +26,13 @@
     "notes": "193 tests passing. ReferenceRow/FileRow projection, 10-record pages, citekey sort, merge file rename fix included."
   },
   {
+    "id": "local-filter",
+    "title": "Local filter — filter_references with predicate search + discover_references rename",
+    "spec": "specs/004-local-filter.md",
+    "passes": true,
+    "notes": "210 tests passing. filter_references with query/author/year/ref_type/has_file/staging predicates. search_references renamed to discover_references."
+  },
+  {
     "id": "deduplication",
     "title": "Full deduplication — detect and resolve duplicate references beyond DOI matching",
     "spec": null,
