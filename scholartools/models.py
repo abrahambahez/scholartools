@@ -249,7 +249,6 @@ class SourceConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
     name: str
     enabled: bool = True
-    email: str | None = None
 
 
 def _default_sources() -> list[SourceConfig]:
@@ -264,6 +263,7 @@ def _default_sources() -> list[SourceConfig]:
 
 
 class ApiSettings(BaseModel):
+    email: str | None = None
     sources: list[SourceConfig] = Field(default_factory=_default_sources)
 
 

@@ -21,11 +21,13 @@ Config is loaded from `~/.config/scholartools/config.json`. If the file doesn't 
     "library_dir": "~/.local/share/scholartools"
   },
   "apis": {
+    "email": "you@example.com",
     "sources": [
-      { "name": "crossref", "enabled": true, "email": null },
+      { "name": "crossref", "enabled": true },
       { "name": "semantic_scholar", "enabled": true },
       { "name": "arxiv", "enabled": true },
-      { "name": "latindex", "enabled": true },
+      { "name": "openalex", "enabled": true },
+      { "name": "doaj", "enabled": true },
       { "name": "google_books", "enabled": true }
     ]
   },
@@ -37,7 +39,7 @@ Config is loaded from `~/.config/scholartools/config.json`. If the file doesn't 
 
 `library_dir` controls where `library.json`, `files/`, and `staging/` are stored. All other paths are derived from it.
 
-Set `email` on the `crossref` source to identify your requests to the Crossref API (recommended for higher rate limits).
+Set `apis.email` to identify your requests to Crossref and OpenAlex (recommended — unlocks polite-pool rate limits).
 
 API keys are never stored in config — set them as environment variables:
 
@@ -45,6 +47,7 @@ API keys are never stored in config — set them as environment variables:
 |---|---|---|
 | `ANTHROPIC_API_KEY` | No | PDF metadata extraction via Claude vision (fallback when pdfplumber fails) |
 | `GBOOKS_API_KEY` | No | Enables Google Books as a search/fetch source |
+| `SEMANTIC_SCHOLAR_API_KEY` | No | Raises Semantic Scholar rate limits |
 
 Without these keys the features degrade gracefully: LLM extraction is skipped, Google Books source is disabled.
 
@@ -53,7 +56,7 @@ Without these keys the features degrade gracefully: LLM extraction is skipped, G
 ```python
 import scholartools
 
-# discover references from external sources (Crossref, Semantic Scholar, arXiv, Latindex, Google Books)
+# discover references from external sources (Crossref, Semantic Scholar, arXiv, OpenAlex, DOAJ, Google Books)
 result = scholartools.discover_references("transformer attention mechanism", limit=5)
 
 # fetch full record by DOI, arXiv ID, or ISSN
@@ -94,7 +97,7 @@ Every function returns a typed Result model — never raises.
 
 ## search sources
 
-Crossref · Semantic Scholar · arXiv · Latindex · Google Books — queried concurrently, results normalized to CSL-JSON.
+Crossref · Semantic Scholar · arXiv · OpenAlex · DOAJ · Google Books — queried concurrently, results normalized to CSL-JSON. All sources retry up to 3 times with a 5s delay on rate limits or server errors.
 
 ## Claude Desktop (MCPB)
 

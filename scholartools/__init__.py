@@ -61,11 +61,12 @@ def _build_ctx() -> LibraryCtx:
     ss_api_key = os.environ.get("SEMANTIC_SCHOLAR_API_KEY")
     anthropic_api_key = os.environ.get("ANTHROPIC_API_KEY")
 
+    email = s.apis.email
     source_map = {
-        "crossref": lambda cfg: make_crossref(email=cfg.email),
+        "crossref": lambda cfg: make_crossref(email=email),
         "semantic_scholar": lambda cfg: make_semantic_scholar(api_key=ss_api_key),
         "arxiv": lambda cfg: make_arxiv(),
-        "openalex": lambda cfg: make_openalex(email=cfg.email),
+        "openalex": lambda cfg: make_openalex(email=email),
         "doaj": lambda cfg: make_doaj(),
         "google_books": lambda cfg: (
             make_google_books(api_key=gbooks_api_key) if gbooks_api_key else None
