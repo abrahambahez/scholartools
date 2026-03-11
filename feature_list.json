@@ -42,8 +42,9 @@
   {
     "id": "deduplication",
     "title": "Full deduplication — detect and resolve duplicate references beyond DOI matching",
-    "spec": null,
-    "passes": false
+    "spec": "specs/006-deduplication.md",
+    "passes": true,
+    "notes": "241 tests passing. uid-based record identity (tier-1: DOI/arXiv/ISBN authoritative; tier-2: semantic hash). compute_uid() in services/uid.py, uid written at staging, is_duplicate() uid-only, merge gates semantic confidence with allow_semantic=True, backfill_uid.py script."
   },
   {
     "id": "audit",

@@ -117,3 +117,25 @@ decisions:
   - query only matches title (not abstract/keywords) — full-text deferred to semantic-search feature
 broken: none
 next: deduplication feature — write docs/feats/005-deduplication.md first
+
+--- [2026-03-11] session 5 ---
+completed:
+  - feat 006 deduplication fully implemented and verified (reviewer: PASS)
+  - docs/feats/006-deduplication.md already written (design doc)
+  - docs/rfc/001-distributed-sync.md already written (uid spec)
+  - specs/006-deduplication.md all 7 tasks checked
+  - task-01: uid/uid_confidence optional fields added to Reference in models.py
+  - task-02: services/uid.py — compute_uid() with tier-1 (DOI/arXiv/ISBN) and tier-2 semantic cascade; _normalize_text (NFC+P*/S* removal), _normalize_isbn (strip+ISBN-10→13)
+  - task-03: stage_reference() computes uid before write, never recomputes
+  - task-04: is_duplicate() rewritten to uid-only match; normalize_title kept
+  - task-05: merge() gated on uid_confidence == "semantic" unless allow_semantic=True
+  - task-06: scripts/backfill_uid.py with --dry-run/--verbose, idempotent
+  - task-07: 241 tests passing; test_uid.py (22 tests), test_duplicates.py rewritten, test_merge_service.py updated, test_staging_service.py updated
+  - feature_list.json: deduplication passes: true
+pending: none
+decisions:
+  - uid/uid_confidence are Optional (None default) for backwards compat — backfill script fills existing records
+  - normalize_title kept in duplicates.py (tests still import it)
+  - arXiv ID looked up from model_extra under "arXiv-ID" and "arxiv" keys
+broken: none
+next: MCP server (feat 003) or audit feature — check feature_list.json for next priority

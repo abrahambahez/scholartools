@@ -37,8 +37,14 @@ def compute_uid(ref: Reference) -> tuple[str, Literal["authoritative", "semantic
         key = f"arxiv:{str(arxiv).strip()}"
         return hashlib.sha256(key.encode()).hexdigest()[:16], "authoritative"
 
+    _CONTAINER_TYPES = {
+        "chapter",
+        "entry-encyclopedia",
+        "entry-dictionary",
+        "paper-conference",
+    }
     isbn = extra.get("ISBN")
-    if isbn:
+    if isbn and ref.type not in _CONTAINER_TYPES:
         raw = isbn if isinstance(isbn, str) else isbn[0]
         key = f"isbn:{_normalize_isbn(raw)}"
         return hashlib.sha256(key.encode()).hexdigest()[:16], "authoritative"

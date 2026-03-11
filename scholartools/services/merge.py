@@ -4,6 +4,12 @@ from scholartools.models import DateField, LibraryCtx, MergeResult, Reference
 from scholartools.services.duplicates import is_duplicate
 
 _REQUIRED = ("id", "type", "title", "author", "issued")
+_CONTAINER_TYPES = {
+    "chapter",
+    "entry-encyclopedia",
+    "entry-dictionary",
+    "paper-conference",
+}
 
 _BIBTEX_MAP = {
     "journal": "container-title",
@@ -69,6 +75,7 @@ async def merge(
 
     omit_set = set(omit or [])
     library_refs = [Reference.model_validate(r) for r in library_records]
+    library_dois = {r.DOI.lower().strip() for r in library_refs if r.DOI}
 
     promoted_keys: list[str] = []
     errors: dict[str, str] = {}
@@ -84,6 +91,20 @@ async def merge(
             continue
 
         normalized = _normalize_fields(record)
+
+        if (
+            normalized.get("type") in _CONTAINER_TYPES
+            and normalized.get("DOI")
+            and normalized["DOI"].lower().strip() in library_dois
+        ):
+            normalized.pop("DOI")
+            normalized.setdefault("_warnings", []).append(
+                "container DOI matched a library book record and was stripped"
+            )
+            ref_for_uid = Reference.model_validate(normalized)
+            u, conf = compute_uid(ref_for_uid)
+            normalized["uid"] = u
+            normalized["uid_confidence"] = conf
 
         ref = Reference.model_validate(normalized)
         if ref.uid_confidence == "semantic" and not allow_semantic:

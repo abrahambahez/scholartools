@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-03-11
+
+### Added
+- `services/uid.py` — `compute_uid()` with tier-1 cascade (DOI → arXiv → ISBN) returning `authoritative` confidence, tier-2 semantic hash from canonical fields returning `semantic` confidence
+- `uid` and `uid_confidence` fields on `Reference` model
+- `stage_reference()` now computes and writes uid at intake; never recomputes if already present
+- `merge()` gates `semantic` confidence records unless `allow_semantic=True` is passed
+- `merge()` strips container-type DOIs (chapter, entry, paper-conference) that match a library book record and recomputes uid, adding a warning
+- `scripts/backfill_uid.py` — idempotent backfill script with `--dry-run`, `--verbose`, `--force` flags
+
+### Changed
+- `is_duplicate()` rewired to uid-only matching; normalized-title and ISBN logic removed
+- ISBN excluded from tier-1 uid for container types (chapter, entry-encyclopedia, entry-dictionary, paper-conference) — they resolve to tier-2 semantic hash
+
 ## [0.4.1] - 2026-03-11
 
 ### Changed

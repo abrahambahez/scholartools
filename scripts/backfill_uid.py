@@ -16,7 +16,7 @@ from scholartools.models import Reference
 from scholartools.services.uid import compute_uid
 
 
-def _backfill_file(path: Path, dry_run: bool, verbose: bool) -> int:
+def _backfill_file(path: Path, dry_run: bool, verbose: bool, force: bool) -> int:
     if not path.exists():
         if verbose:
             print(f"skip (not found): {path}")
@@ -26,7 +26,7 @@ def _backfill_file(path: Path, dry_run: bool, verbose: bool) -> int:
     updated = 0
 
     for record in records:
-        if record.get("uid"):
+        if record.get("uid") and not force:
             continue
         ref = Reference.model_validate(record)
         u, conf = compute_uid(ref)
@@ -52,6 +52,9 @@ def main() -> None:
     parser.add_argument(
         "--verbose", action="store_true", help="print each updated record"
     )
+    parser.add_argument(
+        "--force", action="store_true", help="recompute uid even if already present"
+    )
     args = parser.parse_args()
 
     s = load_settings()
@@ -61,7 +64,9 @@ def main() -> None:
     for path in files:
         if args.verbose:
             print(f"processing: {path}")
-        count = _backfill_file(path, dry_run=args.dry_run, verbose=args.verbose)
+        count = _backfill_file(
+            path, dry_run=args.dry_run, verbose=args.verbose, force=args.force
+        )
         if args.verbose:
             print(f"  updated {count} record(s)")
         total += count
