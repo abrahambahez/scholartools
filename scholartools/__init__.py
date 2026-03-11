@@ -10,7 +10,6 @@ from scholartools.apis.anthropic_extract import make_llm_extractor
 from scholartools.apis.arxiv import make_arxiv
 from scholartools.apis.crossref import make_crossref
 from scholartools.apis.google_books import make_google_books
-from scholartools.apis.latindex import make_latindex
 from scholartools.apis.semantic_scholar import make_semantic_scholar
 from scholartools.config import load_settings
 from scholartools.models import (
@@ -63,7 +62,6 @@ def _build_ctx() -> LibraryCtx:
         "crossref": lambda cfg: make_crossref(email=cfg.email),
         "semantic_scholar": lambda cfg: make_semantic_scholar(api_key=None),
         "arxiv": lambda cfg: make_arxiv(),
-        "latindex": lambda cfg: make_latindex(api_key=None),
         "google_books": lambda cfg: (
             make_google_books(api_key=gbooks_api_key) if gbooks_api_key else None
         ),

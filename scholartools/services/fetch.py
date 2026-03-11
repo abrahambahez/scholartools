@@ -44,8 +44,6 @@ def _route(identifier: str, ctx: LibraryCtx) -> tuple[str | None, object]:
             return "arxiv", sources["arxiv"]["fetch"]
 
     if _ISSN_RE.match(identifier):
-        if "latindex" in sources:
-            return "latindex", sources["latindex"]["fetch"]
         if "crossref" in sources:
             return "crossref", sources["crossref"]["fetch"]
 

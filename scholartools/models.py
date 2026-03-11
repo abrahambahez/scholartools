@@ -257,7 +257,6 @@ def _default_sources() -> list[SourceConfig]:
         SourceConfig(name="crossref"),
         SourceConfig(name="semantic_scholar"),
         SourceConfig(name="arxiv"),
-        SourceConfig(name="latindex"),
         SourceConfig(name="google_books"),
     ]
 

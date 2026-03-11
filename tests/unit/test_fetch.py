@@ -4,9 +4,7 @@ from scholartools.models import LibraryCtx
 from scholartools.services.fetch import fetch_reference
 
 
-def make_ctx(
-    crossref=None, arxiv=None, latindex=None, semantic_scholar=None
-) -> LibraryCtx:
+def make_ctx(crossref=None, arxiv=None, semantic_scholar=None) -> LibraryCtx:
     async def noop(*_):
         pass
 
@@ -19,8 +17,6 @@ def make_ctx(
         )
     if arxiv is not None:
         sources.append({"name": "arxiv", "search": noop, "fetch": arxiv})
-    if latindex is not None:
-        sources.append({"name": "latindex", "search": noop, "fetch": latindex})
 
     return LibraryCtx(
         read_all=AsyncMock(return_value=[]),
@@ -51,11 +47,11 @@ async def test_fetch_arxiv_id_routes_to_arxiv():
     mock.assert_called_once()
 
 
-async def test_fetch_issn_routes_to_latindex():
+async def test_fetch_issn_routes_to_crossref():
     mock = AsyncMock(return_value={"title": "Journal"})
-    ctx = make_ctx(latindex=mock)
+    ctx = make_ctx(crossref=mock)
     result = await fetch_reference("1234-567X", ctx)
-    assert result.source == "latindex"
+    assert result.source == "crossref"
 
 
 async def test_fetch_not_found():

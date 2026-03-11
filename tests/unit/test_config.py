@@ -92,7 +92,6 @@ def test_source_order_preserved(tmp_path, monkeypatch):
         "crossref",
         "semantic_scholar",
         "arxiv",
-        "latindex",
         "google_books",
     ]
 
