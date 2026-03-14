@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "scholartools"
-version = "0.5.1"
+version = "0.5.2"
 description = "Agent-first academic reference management library — idearium fork"
 requires-python = ">=3.12"
 dependencies = [

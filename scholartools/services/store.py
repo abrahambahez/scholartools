@@ -126,9 +126,11 @@ async def filter_references(
 
 def _author_matches(record: dict, query: str) -> bool:
     for a in record.get("author") or []:
-        if query in (a.get("family") or "").lower():
-            return True
-        if query in (a.get("literal") or "").lower():
+        family = (a.get("family") or "").lower()
+        given = (a.get("given") or "").lower()
+        literal = (a.get("literal") or "").lower()
+        full = f"{given} {family}".strip()
+        if any(query in s for s in (family, given, literal, full)):
             return True
     return False
 
