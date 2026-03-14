@@ -39,6 +39,9 @@ The FLACSO project requires multiple scholars to independently curate and contri
 
 ```
 {shared-root}/
+    peers/
+        _admin
+        {peer_id}
     changes/{peer_id}/{hlc_timestamp}.json
     snapshots/{timestamp}.json
 ```
@@ -49,6 +52,8 @@ The FLACSO project requires multiple scholars to independently curate and contri
 {shared-root}/
     blobs/{sha256}
 ```
+
+The `peers/` directory is managed exclusively by the admin peer. See [RFC 002](002-peer-management.md) for the full peer registration and verification design.
 
 `{shared-root}` maps to a bucket, a directory on a remote server, or a path in a federated cluster depending on the chosen backend (see [deployment tiers](#deployment-tiers)).
 
@@ -77,9 +82,13 @@ Example entry (phase 1):
   "citekey": "perez2024",
   "data": { "..." : "..." },
   "peer_id": "scholar-abc",
-  "timestamp_hlc": "2026-03-11T10:00:00.000Z-0001-scholar-abc"
+  "device_id": "laptop-primary",
+  "timestamp_hlc": "2026-03-11T10:00:00.000Z-0001-scholar-abc",
+  "signature": "<base64-encoded Ed25519 signature over canonical payload>"
 }
 ```
+
+The canonical payload for signing is the JSON object with all fields except `signature`, serialized with sorted keys and no extra whitespace.
 
 Example entry (phase 2, `link_file`):
 
@@ -89,9 +98,13 @@ Example entry (phase 2, `link_file`):
   "uid": "a3f9c2d1",
   "blob_ref": "sha256:e3b0c44298fc1c149afbf4c8996fb924",
   "peer_id": "scholar-abc",
-  "timestamp_hlc": "2026-03-11T10:05:00.000Z-0001-scholar-abc"
+  "device_id": "laptop-primary",
+  "timestamp_hlc": "2026-03-11T10:05:00.000Z-0001-scholar-abc",
+  "signature": "<base64-encoded Ed25519 signature over canonical payload>"
 }
 ```
+
+Pull verifies `(peer_id, device_id, signature)` against the `peers/` directory before processing any entry. Verification rules and rejection behavior are specified in [RFC 002](002-peer-management.md).
 
 **Soft-delete and restore.** A `delete_reference` entry sets `deleted: true` on the record in the local library. The record and its data are preserved. A `restore_reference` entry clears the flag. Deleted records are excluded from all list and filter operations by default; they remain visible under an explicit `include_deleted=True` flag and can be restored via `restore_reference(citekey)`. Hard delete (permanent removal from the log) is not supported by this protocol.
 
@@ -158,8 +171,8 @@ A `uid_confidence` field accompanies the uid: `"authoritative"` for tier 1, `"se
 
 ### sync protocol
 
-1. **push** — run `merge()` on any local staged work, then write all new local change log entries as a single file to `changes/{peer_id}/{hlc_timestamp}.json` on the shared backend
-2. **pull** — fetch all change log files newer than the last known HLC fence, replay them against the local library
+1. **push** — run `merge()` on any local staged work, then sign and write all new local change log entries as a single file to `changes/{peer_id}/{hlc_timestamp}.json` on the shared backend
+2. **pull** — fetch all change log files newer than the last known HLC fence; verify each entry's `(peer_id, device_id, signature)` against the `peers/` directory (see [RFC 002](002-peer-management.md)); replay verified entries against the local library; write rejected entries to a local `rejected/` log
 3. **merge** — the existing `merge()` API is the primitive for committing local staged work before a push
 
 **Conflict detection.** During pull, for each incoming `update_reference` entry the sync layer compares incoming field values against local field values for the same uid. A conflict is raised when:
@@ -282,14 +295,14 @@ For scholars who need a full local copy before going offline (e.g., fieldwork), 
 
 **preprint vs published identity.** The uid cascade treats a preprint and its published version as different records if their DOIs differ. For FLACSO's water index, treating them as distinct is probably correct — but an explicit policy should be documented before onboarding contributors.
 
-**access control.** Access control is backend-specific. S3 and MinIO use bucket policies and IAM credentials per contributor. rsync relies on SSH key authorization. Signed change log entries and org-level tokens are out of scope for this RFC but should be designed before a public release.
+**access control.** Access control is backend-specific. S3 and MinIO use bucket policies and IAM credentials per peer. rsync relies on SSH key authorization. Cryptographic entry signing and peer registration are specified in [RFC 002](002-peer-management.md).
 
 **real-time collaboration.** This design targets low-frequency, offline-first curation. If that requirement emerges, a full CRDT document model (e.g., Automerge) would be the appropriate next step — the sync layer abstraction described here would accommodate it without changing the public API.
 
 ## open questions
 
 1. Should snapshots be generated automatically (e.g., every N changes) or remain manual-only?
-2. Is `peer_id` in config sufficient for identity, or does FLACSO require verifiable attribution per change (e.g., GPG-signed entries)?
+2. ~~Is `peer_id` in config sufficient for identity, or does FLACSO require verifiable attribution per change?~~ Resolved: Ed25519-signed entries with per-device keypairs. See [RFC 002](002-peer-management.md).
 3. What is the acceptable lag between a scholar's push and another's pull — is periodic manual pull sufficient, or does FLACSO need a polling daemon?
 4. Is there a FLACSO-specific identifier (institutional record ID, project code) that should be promoted to tier 1 in the uid cascade?
 
