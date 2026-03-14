@@ -10,7 +10,7 @@ pull-time verified against the peer directory before merge logic runs.
 
 Key design decisions:
 - Identity is `(peer_id, device_id)`; keys are Ed25519, one keypair per device.
-- Private keys stored locally at `keys/{peer_id}/{device_id}.key` (mode 0600).
+- Private keys stored at `~/.config/scholartools/keys/{peer_id}/{device_id}.key` (mode 0600) — user-scoped, machine-local, outside any library `data_dir`.
 - Admin peer is the sole writer to `peers/` in shared storage.
 - All admin functions verify the local keypair matches the `_admin` record before writing.
 - Pull loads the peers directory, filters revoked devices, builds an in-memory map, and
@@ -37,8 +37,10 @@ to be complete.
 ## acceptance criteria (EARS format)
 
 - WHEN `peer_init(peer_id, device_id)` is called, the system MUST generate a new Ed25519
-  keypair, store the private key at `keys/{peer_id}/{device_id}.key` with mode 0600, and
-  return a `PeerIdentity` model containing the base64url-encoded public key.
+  keypair, store the private key at
+  `~/.config/scholartools/keys/{peer_id}/{device_id}.key` (mode 0600), and return a
+  `PeerIdentity` model containing the base64url-encoded public key. The key path is
+  derived from `CONFIG_PATH.parent / "keys"`, never from `data_dir`.
 - WHEN `peer_init` is called for a `(peer_id, device_id)` pair that already has a local
   key file, the system MUST return an error result without overwriting the existing key.
 - WHEN `peer_register(identity)` is called without a local admin keypair present, the
@@ -87,7 +89,8 @@ to be complete.
 
 - [ ] task-04: `services/peers.py` — `peer_init(peer_id, device_id, ctx) -> Result`
   checks key file does not exist, generates Ed25519 keypair, writes private key (mode
-  0600), returns `PeerIdentity` (blocks: task-01, task-03)
+  0600) to `CONFIG_PATH.parent / "keys" / peer_id / device_id + ".key"`, returns
+  `PeerIdentity` (blocks: task-01, task-03)
 
 - [ ] task-05: `adapters/peer_directory.py` — `load_peer_directory(peers_dir: Path) ->
   dict[tuple[str, str], bytes]` reads all JSON files in `peers/`, skips revoked devices,

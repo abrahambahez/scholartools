@@ -49,10 +49,13 @@ before any merge logic runs.
 
 ### keypair format
 
-Keys are stored as raw 32-byte Ed25519 keys, base64url-encoded (no padding), in the
-local data directory under `keys/{peer_id}/{device_id}.key` (private) and
-`keys/{peer_id}/{device_id}.pub` (public). The private key file is created with mode
-`0600`. Public keys are shared as identity files during onboarding.
+Keys are stored as raw 32-byte Ed25519 keys, base64url-encoded (no padding), under
+`~/.config/scholartools/keys/{peer_id}/{device_id}.key` (private) and
+`~/.config/scholartools/keys/{peer_id}/{device_id}.pub` (public). This path is derived
+from `CONFIG_PATH.parent / "keys"` — never from a library's `data_dir`, so the identity
+is user-scoped and machine-local regardless of which library the user is working with.
+The private key file is created with mode `0600`. Public keys are shared as identity
+files during onboarding.
 
 ### canonical payload for signing
 
