@@ -47,6 +47,18 @@
     "notes": "241 tests passing. uid-based record identity (tier-1: DOI/arXiv/ISBN authoritative; tier-2: semantic hash). compute_uid() in services/uid.py, uid written at staging, is_duplicate() uid-only, merge gates semantic confidence with allow_semantic=True, backfill_uid.py script."
   },
   {
+    "id": "peer-management",
+    "title": "Peer management — Ed25519 identity, peer registration, device lifecycle, pull-time verification",
+    "spec": "specs/008-peer-management.md",
+    "passes": false
+  },
+  {
+    "id": "distributed-sync-phase1",
+    "title": "Distributed sync phase 1 — append-only change log, push/pull, conflict resolution, rsync+S3 adapters",
+    "spec": null,
+    "passes": false
+  },
+  {
     "id": "audit",
     "title": "Database audit — integrity checks, orphaned files, missing archives, schema violations",
     "spec": null,
