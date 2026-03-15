@@ -74,6 +74,22 @@ def main() -> None:
     else:
         print("no files/ directory found — skipping")
 
+    src_staging = from_dir / "staging.json"
+    dst_staging = to_dir / "staging.json"
+    if src_staging.exists():
+        if not args.dry_run:
+            shutil.copy2(src_staging, dst_staging)
+        print(f"{'[dry-run] ' if args.dry_run else ''}copied staging.json")
+
+    src_staging_dir = from_dir / "staging"
+    dst_staging_dir = to_dir / "staging"
+    if src_staging_dir.exists():
+        if not args.dry_run:
+            if dst_staging_dir.exists():
+                shutil.rmtree(dst_staging_dir)
+            shutil.copytree(src_staging_dir, dst_staging_dir)
+        print(f"{'[dry-run] ' if args.dry_run else ''}copied staging/")
+
     if not args.dry_run:
         st.reset()
 

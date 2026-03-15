@@ -52,7 +52,6 @@ Create a programmatic-access IAM user and attach this inline policy
     "Action": [
       "s3:GetObject",
       "s3:PutObject",
-      "s3:HeadObject",
       "s3:ListBucket",
       "s3:DeleteObject"
     ],
@@ -221,6 +220,8 @@ If you prefer to do it manually:
 # 1. copy library data
 cp /old/library/dir/library.json /new/library/dir/library.json
 cp -r /old/library/dir/files /new/library/dir/files
+cp /old/library/dir/staging.json /new/library/dir/staging.json   # if exists
+cp -r /old/library/dir/staging /new/library/dir/staging           # if exists
 
 # 2. reload scholartools so it sees the new data
 ```
