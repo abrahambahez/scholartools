@@ -40,6 +40,7 @@ from scholartools.models import (
     PeerRegisterResult,
     PeerRevokeDeviceResult,
     PeerRevokeResult,
+    PrefetchResult,
     PullResult,
     PushResult,
     Reference,
@@ -223,12 +224,20 @@ def extract_from_file(file_path: str) -> ExtractResult:
     return _run(extract.extract_from_file(file_path, _get_ctx()))
 
 
-def link_file(citekey: str, file_path: str) -> LinkResult:
-    return _run(files.link_file(citekey, file_path, _get_ctx()))
+def link_file(citekey: str, file_path: str) -> Result:
+    return _run(sync_service.link_file(_get_ctx(), citekey, file_path))
 
 
-def unlink_file(citekey: str) -> UnlinkResult:
-    return _run(files.unlink_file(citekey, _get_ctx()))
+def unlink_file(citekey: str) -> Result:
+    return _run(sync_service.unlink_file(_get_ctx(), citekey))
+
+
+def get_file(citekey: str):
+    return _run(sync_service.get_file(_get_ctx(), citekey))
+
+
+def prefetch_blobs(citekeys: list[str] | None = None) -> PrefetchResult:
+    return _run(sync_service.prefetch_blobs(_get_ctx(), citekeys))
 
 
 def move_file(citekey: str, dest_name: str) -> MoveResult:

@@ -10,10 +10,18 @@ from scholartools.models import (
     ChangeLogEntry,
     ConflictRecord,
     LibraryCtx,
+    PrefetchResult,
     PullResult,
     PushResult,
+    Result,
 )
+from scholartools.services import hlc as hlc_service
 from scholartools.services import peers as peers_service
+from scholartools.services.blobs import (
+    blob_cache_path,
+    compute_sha256_streaming,
+    ensure_blob_cache_dir,
+)
 
 
 def _sync_state_path(data_dir: Path) -> Path:
@@ -79,6 +87,14 @@ def _change_log_entries(
         except (ValueError, OSError):
             continue
     return results
+
+
+def _write_change_log_entry(data_dir: Path, entry: ChangeLogEntry) -> None:
+    log_dir = data_dir / "change_log"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    (log_dir / f"{entry.timestamp_hlc}.json").write_text(
+        entry.model_dump_json(), encoding="utf-8"
+    )
 
 
 async def push(ctx: LibraryCtx) -> PushResult:
@@ -155,7 +171,6 @@ async def pull(ctx: LibraryCtx) -> PullResult:
     entries: list[ChangeLogEntry] = []
 
     for key in remote_keys:
-        # skip entries from this peer (already local)
         parts = key.split("/")
         if len(parts) >= 2 and parts[1] == ctx.admin_peer_id:
             continue
@@ -191,7 +206,6 @@ async def pull(ctx: LibraryCtx) -> PullResult:
             errors.append(f"{key}: invalid entry: {exc}")
             continue
 
-    # replay in HLC order
     entries.sort(key=lambda e: e.timestamp_hlc)
 
     local_records: dict[str, dict] = {}
@@ -245,7 +259,6 @@ async def pull(ctx: LibraryCtx) -> PullResult:
                 remote_ts = entry.timestamp_hlc
 
                 if local_ts and local_ts >= remote_ts:
-                    # LWW: local is newer or equal — skip
                     if local_ts > remote_ts and _within_60s(local_ts, remote_ts):
                         if not conflict_written:
                             conflict = ConflictRecord(
@@ -271,6 +284,36 @@ async def pull(ctx: LibraryCtx) -> PullResult:
             updated_records[citekey] = merged
             if not conflict_written:
                 applied += 1
+        elif entry.op == "link_file":
+            existing = updated_records.get(citekey, {})
+            ft = existing.get("_field_timestamps", {})
+            local_ts = ft.get("blob_ref", "")
+            remote_ts = entry.timestamp_hlc
+            if not local_ts or remote_ts > local_ts:
+                merged = dict(existing)
+                merged["blob_ref"] = entry.blob_ref
+                field_timestamps = dict(ft)
+                field_timestamps["blob_ref"] = remote_ts
+                if not merged.get("id"):
+                    merged["id"] = citekey
+                merged["_field_timestamps"] = field_timestamps
+                updated_records[citekey] = merged
+            applied += 1
+        elif entry.op == "unlink_file":
+            existing = updated_records.get(citekey, {})
+            ft = existing.get("_field_timestamps", {})
+            local_ts = ft.get("blob_ref", "")
+            remote_ts = entry.timestamp_hlc
+            if not local_ts or remote_ts > local_ts:
+                merged = dict(existing)
+                merged["blob_ref"] = None
+                field_timestamps = dict(ft)
+                field_timestamps["blob_ref"] = remote_ts
+                if not merged.get("id"):
+                    merged["id"] = citekey
+                merged["_field_timestamps"] = field_timestamps
+                updated_records[citekey] = merged
+            applied += 1
 
         if entry.timestamp_hlc > new_fence:
             new_fence = entry.timestamp_hlc
@@ -299,7 +342,6 @@ async def create_snapshot(ctx: LibraryCtx) -> None:
     data_dir = Path(ctx.data_dir)
     records = await ctx.read_all()
 
-    # find highest HLC in change log
     fence_hlc = ""
     change_log_dir = data_dir / "change_log"
     if change_log_dir.exists():
@@ -330,3 +372,214 @@ async def create_snapshot(ctx: LibraryCtx) -> None:
         s3_sync.upload(ctx.sync_config, tmp_path, remote_key)
     finally:
         tmp_path.unlink(missing_ok=True)
+
+
+async def link_file(ctx: LibraryCtx, citekey: str, local_path: str) -> Result:
+    if not ctx.data_dir:
+        return Result(ok=False, error="data_dir not configured")
+
+    src = Path(local_path).resolve()
+    if not src.exists():
+        return Result(ok=False, error=f"file not found: {local_path}")
+
+    records = await ctx.read_all()
+    record = next((r for r in records if r.get("id") == citekey), None)
+    if record is None:
+        return Result(ok=False, error=f"not found: {citekey}")
+
+    data_dir = Path(ctx.data_dir)
+
+    try:
+        sha256 = compute_sha256_streaming(src)
+    except OSError as exc:
+        return Result(ok=False, error=f"hash failed: {exc}")
+
+    blob_key = f"blobs/{sha256}"
+    blob_ref = f"sha256:{sha256}"
+
+    if ctx.sync_config is not None:
+        try:
+            if not s3_sync.exists(ctx.sync_config, blob_key):
+                s3_sync.upload(ctx.sync_config, src, blob_key)
+        except Exception as exc:
+            return Result(ok=False, error=f"blob upload failed: {exc}")
+
+        ts = hlc_service.now(ctx.admin_peer_id)
+        meta = json.dumps(
+            {
+                "citekey": citekey,
+                "filename": src.name,
+                "uploaded_by": ctx.admin_peer_id,
+                "timestamp_hlc": ts,
+            },
+            ensure_ascii=False,
+        ).encode()
+        try:
+            s3_sync.upload_bytes(ctx.sync_config, meta, f"{blob_key}.meta")
+        except Exception as exc:
+            return Result(ok=False, error=f"meta upload failed: {exc}")
+    else:
+        ts = hlc_service.now(ctx.admin_peer_id)
+
+    privkey = _load_privkey(ctx)
+    entry_dict = {
+        "op": "link_file",
+        "uid": record.get("uid") or citekey,
+        "uid_confidence": record.get("uid_confidence") or "",
+        "citekey": citekey,
+        "data": {},
+        "blob_ref": blob_ref,
+        "peer_id": ctx.admin_peer_id,
+        "device_id": ctx.admin_device_id,
+        "timestamp_hlc": ts,
+        "signature": "",
+    }
+    if privkey is not None:
+        entry_dict["signature"] = _sign_entry(entry_dict, privkey)
+
+    entry = ChangeLogEntry.model_validate(entry_dict)
+    _write_change_log_entry(data_dir, entry)
+
+    record["blob_ref"] = blob_ref
+    ft = dict(record.get("_field_timestamps", {}))
+    ft["blob_ref"] = ts
+    record["_field_timestamps"] = ft
+    await ctx.write_all(records)
+
+    return Result(ok=True)
+
+
+async def unlink_file(ctx: LibraryCtx, citekey: str) -> Result:
+    if not ctx.data_dir:
+        return Result(ok=False, error="data_dir not configured")
+
+    records = await ctx.read_all()
+    record = next((r for r in records if r.get("id") == citekey), None)
+    if record is None:
+        return Result(ok=False, error=f"not found: {citekey}")
+
+    data_dir = Path(ctx.data_dir)
+    ts = hlc_service.now(ctx.admin_peer_id)
+    privkey = _load_privkey(ctx)
+
+    entry_dict = {
+        "op": "unlink_file",
+        "uid": record.get("uid") or citekey,
+        "uid_confidence": record.get("uid_confidence") or "",
+        "citekey": citekey,
+        "data": {},
+        "blob_ref": None,
+        "peer_id": ctx.admin_peer_id,
+        "device_id": ctx.admin_device_id,
+        "timestamp_hlc": ts,
+        "signature": "",
+    }
+    if privkey is not None:
+        entry_dict["signature"] = _sign_entry(entry_dict, privkey)
+
+    entry = ChangeLogEntry.model_validate(entry_dict)
+    _write_change_log_entry(data_dir, entry)
+
+    record["blob_ref"] = None
+    ft = dict(record.get("_field_timestamps", {}))
+    ft["blob_ref"] = ts
+    record["_field_timestamps"] = ft
+    await ctx.write_all(records)
+
+    return Result(ok=True)
+
+
+async def get_file(ctx: LibraryCtx, citekey: str) -> Path | None:
+    if not ctx.data_dir:
+        return None
+
+    records = await ctx.read_all()
+    record = next((r for r in records if r.get("id") == citekey), None)
+    if record is None:
+        return None
+
+    blob_ref = record.get("blob_ref")
+    if not blob_ref:
+        return None
+
+    sha256 = blob_ref.removeprefix("sha256:")
+    data_dir = Path(ctx.data_dir)
+    ensure_blob_cache_dir(data_dir)
+    cache_path = blob_cache_path(data_dir, sha256)
+
+    if cache_path.exists():
+        cached_sha256 = compute_sha256_streaming(cache_path)
+        if cached_sha256 == sha256:
+            return cache_path
+        cache_path.unlink(missing_ok=True)
+
+    if ctx.sync_config is None:
+        return None
+
+    try:
+        s3_sync.download(ctx.sync_config, f"blobs/{sha256}", cache_path)
+    except Exception:
+        return None
+
+    downloaded_sha256 = compute_sha256_streaming(cache_path)
+    if downloaded_sha256 != sha256:
+        cache_path.unlink(missing_ok=True)
+        return None
+
+    return cache_path
+
+
+async def prefetch_blobs(
+    ctx: LibraryCtx, citekeys: list[str] | None = None
+) -> PrefetchResult:
+    if not ctx.data_dir:
+        return PrefetchResult(
+            fetched=0, already_cached=0, errors=["data_dir not configured"]
+        )
+
+    records = await ctx.read_all()
+    if citekeys is not None:
+        citekey_set = set(citekeys)
+        records = [r for r in records if r.get("id") in citekey_set]
+
+    data_dir = Path(ctx.data_dir)
+    ensure_blob_cache_dir(data_dir)
+
+    fetched = 0
+    already_cached = 0
+    errors = []
+
+    for record in records:
+        blob_ref = record.get("blob_ref")
+        if not blob_ref:
+            continue
+
+        sha256 = blob_ref.removeprefix("sha256:")
+        cache_path = blob_cache_path(data_dir, sha256)
+
+        if cache_path.exists():
+            cached_sha256 = compute_sha256_streaming(cache_path)
+            if cached_sha256 == sha256:
+                already_cached += 1
+                continue
+            cache_path.unlink(missing_ok=True)
+
+        if ctx.sync_config is None:
+            errors.append(f"{record.get('id')}: sync not configured")
+            continue
+
+        try:
+            s3_sync.download(ctx.sync_config, f"blobs/{sha256}", cache_path)
+        except Exception as exc:
+            errors.append(f"{record.get('id')}: download failed: {exc}")
+            continue
+
+        downloaded_sha256 = compute_sha256_streaming(cache_path)
+        if downloaded_sha256 != sha256:
+            cache_path.unlink(missing_ok=True)
+            errors.append(f"{record.get('id')}: sha256 mismatch after download")
+            continue
+
+        fetched += 1
+
+    return PrefetchResult(fetched=fetched, already_cached=already_cached, errors=errors)

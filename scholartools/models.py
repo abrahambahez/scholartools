@@ -49,6 +49,7 @@ class Reference(BaseModel):
     uid: str | None = None
     uid_confidence: Literal["authoritative", "semantic"] | None = None
 
+    blob_ref: str | None = None
     file_record: FileRecord | None = Field(None, alias="_file")
     warnings: list[str] = Field(default_factory=list, alias="_warnings")
     field_timestamps: dict[str, str] = Field(
@@ -383,7 +384,8 @@ class ChangeLogEntry(BaseModel):
     uid: str
     uid_confidence: str
     citekey: str
-    data: dict
+    data: dict = Field(default_factory=dict)
+    blob_ref: str | None = None
     peer_id: str
     device_id: str
     timestamp_hlc: str
@@ -415,3 +417,9 @@ class PullResult(BaseModel):
 class Result(BaseModel):
     ok: bool = True
     error: str | None = None
+
+
+class PrefetchResult(BaseModel):
+    fetched: int
+    already_cached: int
+    errors: list[str]

@@ -61,6 +61,13 @@
     "notes": "328 unit tests + 5 integration tests passing. HLC timestamps (services/hlc.py), ChangeLogEntry/ConflictRecord/PushResult/PullResult/SyncConfig models, S3 adapter (boto3 optional import), conflicts_store adapter, sync service (push/pull/create_snapshot), SyncCompositeAdapter (change log on every write), Settings.sync wiring, 6 public API functions (push/pull/create_snapshot/list_conflicts/resolve_conflict/restore_reference). _field_timestamps on Reference for per-field LWW tracking."
   },
   {
+    "id": "blob-sync",
+    "title": "Blob sync — content-addressed file distribution over S3",
+    "spec": "specs/009-blob-sync.md",
+    "passes": true,
+    "notes": "399 unit + integration tests passing. sha256 content-addressed blobs, link_file/unlink_file ops in change log, lazy get_file with cache, prefetch_blobs, pull LWW for blob_ref, upload_bytes for .meta sidecars. No regressions."
+  },
+  {
     "id": "audit",
     "title": "Database audit — integrity checks, orphaned files, missing archives, schema violations",
     "spec": null,

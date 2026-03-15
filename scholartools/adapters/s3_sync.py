@@ -43,3 +43,11 @@ def exists(config: SyncConfig, remote_key: str) -> bool:
         return True
     except Exception:
         return False
+
+
+def upload_bytes(config: SyncConfig, data: bytes, remote_key: str) -> None:
+    import io
+
+    _client(config).put_object(
+        Bucket=config.bucket, Key=remote_key, Body=io.BytesIO(data)
+    )

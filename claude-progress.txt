@@ -195,3 +195,29 @@ decisions:
 broken:
   - tests/integration/test_staging_workflow.py — 4 pre-existing failures (semantic uid confidence gating); NOT caused by this session
 next: audit feature (feature_list.json id: audit)
+
+--- [2026-03-14] session 8 ---
+completed:
+  - feat 009 blob-sync fully implemented and verified
+  - task-01: blob_ref on Reference, PrefetchResult model, blob_ref/data optional defaults on ChangeLogEntry
+  - task-02: upload_bytes() in adapters/s3_sync.py — in-memory bytes via put_object
+  - task-03: services/blobs.py — compute_sha256_streaming, blob_cache_path, ensure_blob_cache_dir
+  - task-04: link_file in services/sync.py — hash → HEAD check → conditional upload → meta sidecar → signed entry → record update
+  - task-05: unlink_file in services/sync.py — signed entry → clear blob_ref → no remote delete
+  - task-06: pull() extended with link_file/unlink_file LWW branches (no blob download during pull)
+  - task-07: get_file in services/sync.py — None/cache-hit/download/verify sha256 flow
+  - task-08: prefetch_blobs in services/sync.py — filter/download-missing/verify/accumulate
+  - task-09: public API wired — link_file/unlink_file use sync_service, get_file/prefetch_blobs added, PrefetchResult exported
+  - task-10: tests/integration/test_blob_sync.py — 11 integration scenarios with MockS3
+  - unit tests: test_blob_models.py (12), test_blobs_service.py (9), test_s3_upload_bytes.py (3), test_blob_sync_service.py (26), test_blob_api.py (5)
+  - 399 unit + integration tests passing (pre-existing staging_workflow failures unchanged)
+  - feature_list.json: blob-sync passes: true
+pending: none
+decisions:
+  - get_file placed in services/sync.py (spec allows library.py or sync.py) — keeps all blob operations co-located
+  - ChangeLogEntry.data given default_factory=dict (backward compatible — all existing code sets it explicitly)
+  - link_file/unlink_file public API return Result instead of LinkResult/UnlinkResult — breaking change per spec intent
+  - get_file returns None on hash mismatch (no raise) — surfaces error implicitly via None return
+broken:
+  - tests/integration/test_staging_workflow.py — 4 pre-existing failures (semantic uid confidence gating)
+next: audit feature (feature_list.json id: audit)
