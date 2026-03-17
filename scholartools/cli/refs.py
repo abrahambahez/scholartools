@@ -8,14 +8,17 @@ from scholartools.models import Result
 
 
 def _fmt_table(rows) -> str:
-    header = f"{'citekey':<20} {'title':<50} {'authors':<30} {'year':<6}"
+    header = f"{'citekey':<20} {'title':<50} {'authors':<30} {'year':<6} {'type':<15}"
     sep = "-" * len(header)
     lines = [header, sep]
     for r in rows:
         title = (r.title or "")[:50]
         authors = (r.authors or "")[:30]
         year = str(r.year) if r.year else ""
-        lines.append(f"{r.citekey:<20} {title:<50} {authors:<30} {year:<6}")
+        ref_type = getattr(r, "ref_type", "") or ""
+        lines.append(
+            f"{r.citekey:<20} {title:<50} {authors:<30} {year:<6} {ref_type:<15}"
+        )
     return "\n".join(lines)
 
 

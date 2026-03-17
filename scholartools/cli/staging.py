@@ -3,20 +3,11 @@ import json
 import sys
 
 import scholartools
-from scholartools.cli._fmt import exit_result
+from scholartools.cli._fmt import exit_result, read_arg
 
 
 def _stage(args: argparse.Namespace) -> None:
-    raw = args.json
-    if raw is None:
-        if not sys.stdin.isatty():
-            raw = sys.stdin.read().strip()
-        else:
-            print(
-                json.dumps({"ok": False, "data": None, "error": "argument required"}),
-                file=sys.stdout,
-            )
-            sys.exit(1)
+    raw = read_arg(args.json, stdin=sys.stdin)
     try:
         ref_dict = json.loads(raw)
     except json.JSONDecodeError as exc:
