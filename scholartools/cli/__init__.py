@@ -2,6 +2,8 @@ import argparse
 import importlib.metadata
 import sys
 
+from scholartools.cli import sync as _sync
+
 _GROUPS = ["refs", "discover", "fetch", "extract", "files", "staging", "peers", "sync"]
 
 _DESCRIPTIONS = {
@@ -41,9 +43,16 @@ def _build_parser() -> argparse.ArgumentParser:
 
     subparsers = parser.add_subparsers(dest="group", metavar="group")
 
+    _group_registers = {
+        "sync": _sync.register,
+    }
+
     for group in _GROUPS:
         sub = subparsers.add_parser(group, help=_DESCRIPTIONS[group])
-        sub.set_defaults(func=_not_implemented)
+        if group in _group_registers:
+            _group_registers[group](sub)
+        else:
+            sub.set_defaults(func=_not_implemented)
 
     return parser
 
