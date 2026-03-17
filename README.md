@@ -53,7 +53,59 @@ API keys are never stored in config — set them as environment variables:
 
 Without these keys the features degrade gracefully: LLM extraction is skipped, Google Books source is disabled.
 
-## usage
+## CLI
+
+`scht` is a full command-line interface that mirrors every public API function. All commands output JSON envelopes for agent consumption.
+
+```bash
+# references
+scht refs add '{"type":"article-journal","title":"...","author":[{"family":"Smith"}],"issued":{"date-parts":[[2020]]}}'
+scht refs get --citekey vaswani2017
+scht refs update vaswani2017 '{"note":"foundational"}'
+scht refs rename vaswani2017 vaswani_etal2017
+scht refs delete vaswani2017
+scht refs list
+scht refs filter --query attention --year 2017
+
+# discover / fetch / extract
+scht discover "transformer attention mechanism" --limit 5
+scht fetch 10.48550/arXiv.1706.03762
+scht extract papers/vaswani2017.pdf
+
+# file archive
+scht files link vaswani2017 papers/vaswani2017.pdf
+scht files unlink vaswani2017
+scht files get vaswani2017
+scht files move vaswani2017 attention.pdf
+scht files list
+
+# staging
+scht staging stage '{"title":"..."}' --file papers/draft.pdf
+scht staging list
+scht staging delete draft2024
+scht staging merge
+scht staging merge --omit draft2024
+
+# sync
+scht sync push
+scht sync pull
+scht sync snapshot
+scht sync conflicts
+scht sync resolve <uid> title "Corrected Title"
+scht sync restore vaswani2017
+
+# peers
+scht peers init alice laptop
+scht peers register-self
+scht peers register alice '{"peer_id":"alice","device_id":"laptop","pubkey_hex":"..."}'
+scht peers add-device bob '{"peer_id":"bob","device_id":"phone","pubkey_hex":"..."}'
+scht peers revoke-device bob old-tablet
+scht peers revoke bob
+```
+
+Every command exits 0 on success, 1 on error; JSON is always written to stdout.
+
+## usage (Python API)
 
 ```python
 import scholartools

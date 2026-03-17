@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-03-16
+
+### Fixed
+- Eliminated all 28 pre-existing ruff errors: F821 missing import, F401 re-export syntax,
+  F841 dead assignments, E741 ambiguous variable name, E501 long lines across source and test files
+
+## [0.8.0] - 2026-03-16
+
+### Added
+- `scht` CLI — full command-line interface covering every public API function:
+  `refs`, `files`, `staging`, `discover`, `fetch`, `extract`, `sync`, `peers` subcommand groups
+- All commands output JSON envelopes `{"ok": bool, "data": ..., "error": ...}` for agent consumption
+- `scht` entry point registered in `pyproject.toml`
+
 ## [0.7.1] - 2026-03-16
 
 ### Fixed
