@@ -2,6 +2,13 @@ import argparse
 import importlib.metadata
 import sys
 
+from scholartools.cli import discover as _discover
+from scholartools.cli import extract as _extract
+from scholartools.cli import fetch as _fetch
+from scholartools.cli import files as _files
+from scholartools.cli import peers as _peers
+from scholartools.cli import refs as _refs
+from scholartools.cli import staging as _staging
 from scholartools.cli import sync as _sync
 
 _GROUPS = ["refs", "discover", "fetch", "extract", "files", "staging", "peers", "sync"]
@@ -44,6 +51,13 @@ def _build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="group", metavar="group")
 
     _group_registers = {
+        "refs": _refs.register,
+        "discover": _discover.register,
+        "fetch": _fetch.register,
+        "extract": _extract.register,
+        "files": _files.register,
+        "peers": _peers.register,
+        "staging": _staging.register,
         "sync": _sync.register,
     }
 
