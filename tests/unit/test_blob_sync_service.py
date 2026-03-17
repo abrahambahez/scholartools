@@ -73,24 +73,35 @@ def test_link_file_unknown_citekey(tmp_path):
     assert "not found" in result.error
 
 
-def test_link_file_no_sync_config_sets_blob_ref(tmp_path):
+def test_link_file_no_sync_config_sets_file_record(tmp_path):
     from scholartools.services.sync import link_file
 
     pdf = write_pdf(tmp_path)
     ctx, records = make_ctx(tmp_path, records=[{"id": "s2024", "type": "article"}])
     result = asyncio.run(link_file(ctx, "s2024", str(pdf)))
     assert result.ok
-    sha256 = hashlib.sha256(b"pdf content").hexdigest()
-    assert records[0]["blob_ref"] == f"sha256:{sha256}"
-    assert records[0]["_field_timestamps"]["blob_ref"]
+    assert records[0].get("_file") is not None
+    assert records[0]["_file"]["size_bytes"] == len(b"pdf content")
+    assert records[0].get("blob_ref") is None
+    assert "_field_timestamps" not in records[0] or "blob_ref" not in records[0].get(
+        "_field_timestamps", {}
+    )
 
 
-def test_link_file_writes_change_log(tmp_path):
+def test_link_file_writes_change_log_with_sync(tmp_path):
     from scholartools.services.sync import link_file
 
     pdf = write_pdf(tmp_path)
-    ctx, _ = make_ctx(tmp_path, records=[{"id": "s2024", "type": "article"}])
-    asyncio.run(link_file(ctx, "s2024", str(pdf)))
+    sync_config = make_sync_config()
+    ctx, _ = make_ctx(
+        tmp_path, records=[{"id": "s2024", "type": "article"}], sync_config=sync_config
+    )
+    with (
+        patch("scholartools.adapters.s3_sync.exists", return_value=True),
+        patch("scholartools.adapters.s3_sync.upload"),
+        patch("scholartools.adapters.s3_sync.upload_bytes"),
+    ):
+        asyncio.run(link_file(ctx, "s2024", str(pdf)))
     log_files = list((tmp_path / "change_log").glob("*.json"))
     assert len(log_files) == 1
     entry = json.loads(log_files[0].read_text())
@@ -166,8 +177,16 @@ def test_link_file_entry_has_signature_when_no_privkey(tmp_path):
     from scholartools.services.sync import link_file
 
     pdf = write_pdf(tmp_path)
-    ctx, _ = make_ctx(tmp_path, records=[{"id": "s2024", "type": "article"}])
-    with patch("scholartools.services.sync._load_privkey", return_value=None):
+    sync_config = make_sync_config()
+    ctx, _ = make_ctx(
+        tmp_path, records=[{"id": "s2024", "type": "article"}], sync_config=sync_config
+    )
+    with (
+        patch("scholartools.services.sync._load_privkey", return_value=None),
+        patch("scholartools.adapters.s3_sync.exists", return_value=True),
+        patch("scholartools.adapters.s3_sync.upload"),
+        patch("scholartools.adapters.s3_sync.upload_bytes"),
+    ):
         result = asyncio.run(link_file(ctx, "s2024", str(pdf)))
     assert result.ok
     log_files = list((tmp_path / "change_log").glob("*.json"))
@@ -187,12 +206,43 @@ def test_unlink_file_unknown_citekey(tmp_path):
     assert "not found" in result.error
 
 
-def test_unlink_file_clears_blob_ref(tmp_path):
+def test_unlink_file_local_only_clears_file_record(tmp_path):
     from scholartools.services.sync import unlink_file
 
+    files_dir = tmp_path / "files"
+    files_dir.mkdir()
+    pdf = files_dir / "s2024.pdf"
+    pdf.write_bytes(b"data")
+    ctx, records = make_ctx(
+        tmp_path,
+        records=[
+            {
+                "id": "s2024",
+                "type": "article",
+                "_file": {
+                    "path": str(pdf),
+                    "mime_type": "application/pdf",
+                    "size_bytes": 4,
+                    "added_at": "2026-01-01T00:00:00+00:00",
+                },
+            }
+        ],
+    )
+    result = asyncio.run(unlink_file(ctx, "s2024"))
+    assert result.ok
+    assert records[0].get("_file") is None
+    assert not pdf.exists()
+    assert not (tmp_path / "change_log").exists()
+
+
+def test_unlink_file_clears_blob_ref_with_sync(tmp_path):
+    from scholartools.services.sync import unlink_file
+
+    sync_config = make_sync_config()
     ctx, records = make_ctx(
         tmp_path,
         records=[{"id": "s2024", "type": "article", "blob_ref": "sha256:abc"}],
+        sync_config=sync_config,
     )
     result = asyncio.run(unlink_file(ctx, "s2024"))
     assert result.ok
@@ -200,12 +250,14 @@ def test_unlink_file_clears_blob_ref(tmp_path):
     assert records[0]["_field_timestamps"]["blob_ref"]
 
 
-def test_unlink_file_writes_change_log(tmp_path):
+def test_unlink_file_writes_change_log_with_sync(tmp_path):
     from scholartools.services.sync import unlink_file
 
+    sync_config = make_sync_config()
     ctx, _ = make_ctx(
         tmp_path,
         records=[{"id": "s2024", "type": "article", "blob_ref": "sha256:abc"}],
+        sync_config=sync_config,
     )
     asyncio.run(unlink_file(ctx, "s2024"))
     log_files = list((tmp_path / "change_log").glob("*.json"))
@@ -497,8 +549,11 @@ def test_get_file_cache_hit(tmp_path):
     sha256 = hashlib.sha256(content).hexdigest()
     blob_ref = f"sha256:{sha256}"
 
+    sync_config = make_sync_config()
     ctx, _ = make_ctx(
-        tmp_path, records=[{"id": "s2024", "type": "article", "blob_ref": blob_ref}]
+        tmp_path,
+        records=[{"id": "s2024", "type": "article", "blob_ref": blob_ref}],
+        sync_config=sync_config,
     )
     cache_dir = tmp_path / "blob_cache"
     cache_dir.mkdir()

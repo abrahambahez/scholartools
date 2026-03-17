@@ -1,4 +1,6 @@
 import json
+import mimetypes
+import shutil
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -9,6 +11,7 @@ from scholartools.config import CONFIG_PATH
 from scholartools.models import (
     ChangeLogEntry,
     ConflictRecord,
+    FileRecord,
     LibraryCtx,
     PrefetchResult,
     PullResult,
@@ -372,6 +375,24 @@ async def create_snapshot(ctx: LibraryCtx) -> None:
         tmp_path.unlink(missing_ok=True)
 
 
+def _detect_mime(path: str) -> str:
+    mime, _ = mimetypes.guess_type(path)
+    return mime or "application/octet-stream"
+
+
+def _copy_to_files_dir(ctx: LibraryCtx, citekey: str, src: Path) -> FileRecord:
+    files_dir = Path(ctx.files_dir)
+    files_dir.mkdir(parents=True, exist_ok=True)
+    dest = files_dir / f"{citekey}{src.suffix}"
+    shutil.copy2(src, dest)
+    return FileRecord(
+        path=str(dest),
+        mime_type=_detect_mime(str(dest)),
+        size_bytes=dest.stat().st_size,
+        added_at=datetime.now(timezone.utc).isoformat(),
+    )
+
+
 async def link_file(ctx: LibraryCtx, citekey: str, local_path: str) -> Result:
     if not ctx.data_dir:
         return Result(ok=False, error="data_dir not configured")
@@ -385,6 +406,17 @@ async def link_file(ctx: LibraryCtx, citekey: str, local_path: str) -> Result:
     if record is None:
         return Result(ok=False, error=f"not found: {citekey}")
 
+    try:
+        file_record = _copy_to_files_dir(ctx, citekey, src)
+    except OSError as exc:
+        return Result(ok=False, error=f"file copy failed: {exc}")
+
+    record["_file"] = file_record.model_dump()
+
+    if ctx.sync_config is None:
+        await ctx.write_all(records)
+        return Result(ok=True)
+
     data_dir = Path(ctx.data_dir)
 
     try:
@@ -395,29 +427,26 @@ async def link_file(ctx: LibraryCtx, citekey: str, local_path: str) -> Result:
     blob_key = f"blobs/{sha256}"
     blob_ref = f"sha256:{sha256}"
 
-    if ctx.sync_config is not None:
-        try:
-            if not s3_sync.exists(ctx.sync_config, blob_key):
-                s3_sync.upload(ctx.sync_config, src, blob_key)
-        except Exception as exc:
-            return Result(ok=False, error=f"blob upload failed: {exc}")
+    try:
+        if not s3_sync.exists(ctx.sync_config, blob_key):
+            s3_sync.upload(ctx.sync_config, src, blob_key)
+    except Exception as exc:
+        return Result(ok=False, error=f"blob upload failed: {exc}")
 
-        ts = hlc_service.now(ctx.peer_id)
-        meta = json.dumps(
-            {
-                "citekey": citekey,
-                "filename": src.name,
-                "uploaded_by": ctx.peer_id,
-                "timestamp_hlc": ts,
-            },
-            ensure_ascii=False,
-        ).encode()
-        try:
-            s3_sync.upload_bytes(ctx.sync_config, meta, f"{blob_key}.meta")
-        except Exception as exc:
-            return Result(ok=False, error=f"meta upload failed: {exc}")
-    else:
-        ts = hlc_service.now(ctx.peer_id)
+    ts = hlc_service.now(ctx.peer_id)
+    meta = json.dumps(
+        {
+            "citekey": citekey,
+            "filename": src.name,
+            "uploaded_by": ctx.peer_id,
+            "timestamp_hlc": ts,
+        },
+        ensure_ascii=False,
+    ).encode()
+    try:
+        s3_sync.upload_bytes(ctx.sync_config, meta, f"{blob_key}.meta")
+    except Exception as exc:
+        return Result(ok=False, error=f"meta upload failed: {exc}")
 
     privkey = _load_privkey(ctx)
     entry_dict = {
@@ -447,6 +476,20 @@ async def link_file(ctx: LibraryCtx, citekey: str, local_path: str) -> Result:
     return Result(ok=True)
 
 
+def _delete_from_files_dir(ctx: LibraryCtx, citekey: str, record: dict) -> None:
+    file_rec = record.get("_file")
+    if file_rec:
+        try:
+            Path(file_rec["path"]).unlink(missing_ok=True)
+        except OSError:
+            pass
+    else:
+        files_dir = Path(ctx.files_dir)
+        for f in files_dir.glob(f"{citekey}.*"):
+            f.unlink(missing_ok=True)
+    record.pop("_file", None)
+
+
 async def unlink_file(ctx: LibraryCtx, citekey: str) -> Result:
     if not ctx.data_dir:
         return Result(ok=False, error="data_dir not configured")
@@ -455,6 +498,12 @@ async def unlink_file(ctx: LibraryCtx, citekey: str) -> Result:
     record = next((r for r in records if r.get("id") == citekey), None)
     if record is None:
         return Result(ok=False, error=f"not found: {citekey}")
+
+    _delete_from_files_dir(ctx, citekey, record)
+
+    if ctx.sync_config is None:
+        await ctx.write_all(records)
+        return Result(ok=True)
 
     data_dir = Path(ctx.data_dir)
     ts = hlc_service.now(ctx.peer_id)
@@ -497,34 +546,36 @@ async def get_file(ctx: LibraryCtx, citekey: str) -> Path | None:
         return None
 
     blob_ref = record.get("blob_ref")
-    if not blob_ref:
+
+    if ctx.sync_config is not None and blob_ref:
+        sha256 = blob_ref.removeprefix("sha256:")
+        data_dir = Path(ctx.data_dir)
+        ensure_blob_cache_dir(data_dir)
+        cache_path = blob_cache_path(data_dir, sha256)
+
+        if cache_path.exists():
+            cached_sha256 = compute_sha256_streaming(cache_path)
+            if cached_sha256 == sha256:
+                return cache_path
+            cache_path.unlink(missing_ok=True)
+
+        try:
+            s3_sync.download(ctx.sync_config, f"blobs/{sha256}", cache_path)
+        except Exception:
+            return None
+
+        downloaded_sha256 = compute_sha256_streaming(cache_path)
+        if downloaded_sha256 != sha256:
+            cache_path.unlink(missing_ok=True)
+            return None
+
+        return cache_path
+
+    file_rec = record.get("_file")
+    if not file_rec:
         return None
-
-    sha256 = blob_ref.removeprefix("sha256:")
-    data_dir = Path(ctx.data_dir)
-    ensure_blob_cache_dir(data_dir)
-    cache_path = blob_cache_path(data_dir, sha256)
-
-    if cache_path.exists():
-        cached_sha256 = compute_sha256_streaming(cache_path)
-        if cached_sha256 == sha256:
-            return cache_path
-        cache_path.unlink(missing_ok=True)
-
-    if ctx.sync_config is None:
-        return None
-
-    try:
-        s3_sync.download(ctx.sync_config, f"blobs/{sha256}", cache_path)
-    except Exception:
-        return None
-
-    downloaded_sha256 = compute_sha256_streaming(cache_path)
-    if downloaded_sha256 != sha256:
-        cache_path.unlink(missing_ok=True)
-        return None
-
-    return cache_path
+    p = Path(file_rec["path"])
+    return p if p.exists() else None
 
 
 async def prefetch_blobs(
