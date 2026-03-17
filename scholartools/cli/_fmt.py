@@ -19,10 +19,7 @@ def _list_data(result: Any) -> list | None:
 
 
 def output(result: Any, plain: bool) -> str:
-    if not hasattr(result, "ok"):
-        return json.dumps(_serialize(result), default=str)
-
-    ok: bool = result.ok
+    ok: bool = getattr(result, "ok", getattr(result, "error", None) is None)
     error: str | None = getattr(result, "error", None)
 
     if hasattr(result, "page"):
@@ -52,7 +49,7 @@ def output(result: Any, plain: bool) -> str:
 
 def exit_result(result: Any, plain: bool) -> None:
     print(output(result, plain))
-    sys.exit(0 if getattr(result, "ok", True) else 1)
+    sys.exit(0 if getattr(result, "ok", getattr(result, "error", None) is None) else 1)
 
 
 def read_arg(value: str | None, *, stdin) -> str:

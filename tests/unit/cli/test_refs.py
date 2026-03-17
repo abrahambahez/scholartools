@@ -32,7 +32,8 @@ def test_refs_add_valid_json(capsys):
         mock_add.assert_called_once_with({"title": "A"})
         out = capsys.readouterr().out
         data = json.loads(out)
-        assert data["citekey"] == "key1"
+        assert data["ok"] is True
+        assert data["data"]["citekey"] == "key1"
 
 
 def test_refs_add_invalid_json(capsys):
@@ -122,7 +123,8 @@ def test_refs_list_json_output(capsys):
         mock_list.assert_called_once_with(page=1)
         out = capsys.readouterr().out
         data = json.loads(out)
-        assert "references" in data
+        assert "data" in data
+        assert "page_info" in data
 
 
 def test_refs_list_plain_output(capsys):

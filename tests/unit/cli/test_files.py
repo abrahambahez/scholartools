@@ -83,8 +83,9 @@ def test_files_list_json(capsys):
         mock_fn.assert_called_once_with(page=1)
         out = capsys.readouterr().out
         data = json.loads(out)
-        assert "files" in data
-        assert len(data["files"]) == 1
+        assert "data" in data
+        assert "page_info" in data
+        assert len(data["data"]) == 1
 
 
 def test_files_list_plain(capsys):
