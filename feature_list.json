@@ -109,5 +109,11 @@
     "title": "Local-first file ops — progressive enhancement stacking blob sync on local copy",
     "spec": "specs/011-local-file-progressive-enhancement.md",
     "passes": false
+  },
+  {
+    "id": "cli",
+    "title": "CLI for scholartools public API — scht command-line tool",
+    "spec": "specs/012-cli.md",
+    "passes": false
   }
 ]
