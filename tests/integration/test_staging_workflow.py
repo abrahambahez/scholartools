@@ -67,7 +67,7 @@ async def test_full_workflow_stage_list_merge_verify(tmp_path):
     assert list_result.total == 1
     assert list_result.references[0].citekey == citekey
 
-    merge_result = await merge(None, ctx)
+    merge_result = await merge(None, ctx, allow_semantic=True)
     assert citekey in merge_result.promoted
     assert merge_result.errors == {}
 
@@ -82,19 +82,20 @@ async def test_full_workflow_stage_list_merge_verify(tmp_path):
 async def test_duplicate_detection_stays_in_staging(tmp_path):
     ctx = make_ctx(tmp_path)
 
-    existing = valid_ref(id="smith2024")
-    existing_dict = existing.model_dump(by_alias=True, exclude_none=True)
-    existing_dict.pop("_warnings", None)
-    await ctx.write_all([existing_dict])
+    existing = valid_ref(title="A Valid Integration Title")
+    stage_existing = await stage_reference(existing, None, ctx)
+    assert stage_existing.error is None
+    existing_key = stage_existing.citekey
+    await merge(None, ctx, allow_semantic=True)
 
     dup = valid_ref(title="A Valid Integration Title")
     stage_result = await stage_reference(dup, None, ctx)
     assert stage_result.error is None
     dup_key = stage_result.citekey
 
-    merge_result = await merge(None, ctx)
+    merge_result = await merge(None, ctx, allow_semantic=True)
     assert dup_key in merge_result.errors
-    assert "smith2024" in merge_result.errors[dup_key]
+    assert existing_key in merge_result.errors[dup_key]
 
     staged_after = await list_staged(ctx)
     assert any(r.citekey == dup_key for r in staged_after.references)
@@ -112,7 +113,7 @@ async def test_skip_list_one_promoted_one_skipped(tmp_path):
     key_a = stage_a.citekey
     key_b = stage_b.citekey
 
-    merge_result = await merge([key_b], ctx)
+    merge_result = await merge([key_b], ctx, allow_semantic=True)
 
     assert key_a in merge_result.promoted
     assert key_b in merge_result.skipped
@@ -141,7 +142,7 @@ async def test_file_archival_on_merge(tmp_path):
     staged_file = staging_dir / src_file.name
     assert staged_file.exists()
 
-    merge_result = await merge(None, ctx)
+    merge_result = await merge(None, ctx, allow_semantic=True)
     assert citekey in merge_result.promoted
 
     files_dir = tmp_path / "files"
