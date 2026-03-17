@@ -248,3 +248,25 @@ decisions:
 broken:
   - tests/integration/test_staging_workflow.py — 4 pre-existing failures (semantic uid confidence gating unchanged)
 next: audit feature (feature_list.json id: audit)
+
+--- [2026-03-16] session 10 ---
+completed:
+  - feat 011 local-file-progressive-enhancement fully implemented and verified (reviewer: PASS)
+  - specs/011-local-file-progressive-enhancement.md written (8 tasks)
+  - task-01: _copy_to_files_dir helper; link_file refactored — local copy always runs, S3 stacks on top
+  - task-02: _delete_from_files_dir helper; unlink_file refactored — local delete always runs, blob_ref/log conditional
+  - task-03: get_file fallback — reads file_record.path when sync absent or blob_ref missing
+  - task-04: move_file and list_files verified correct for local users — no changes needed
+  - task-05: tests/unit/test_file_local_progressive.py — 6 unit tests, all passing
+  - task-06: tests/integration/test_file_progressive_enhancement.py — 3 integration tests (local workflow, sync workflow, mixed state)
+  - task-07: 398 unit tests passing; zero new ruff violations; 4 pre-existing staging_workflow failures unchanged
+  - task-08: feature_list.json entry added (passes: false — flip after end-to-end verification)
+  - test_blob_sync_service.py: 4 tests updated to reflect new local-only behavior (file_record set, no blob_ref)
+pending: none
+decisions:
+  - ctx.sync_config is sole discriminator — no flags or new config fields
+  - File copy always runs for S3 users too (local-first model; documented in spec risks)
+  - Partial failure (copy ok, S3 fail) leaves file_record set but no blob_ref — recoverable by retry
+broken:
+  - tests/integration/test_staging_workflow.py — 4 pre-existing failures (semantic uid confidence gating unchanged)
+next: audit feature (feature_list.json id: audit)
