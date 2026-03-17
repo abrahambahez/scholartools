@@ -72,8 +72,13 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> None:
+    pre = argparse.ArgumentParser(add_help=False)
+    pre.add_argument("--plain", action="store_true", default=False)
+    pre_args, remaining = pre.parse_known_args()
+
     parser = _build_parser()
-    args = parser.parse_args()
+    args = parser.parse_args(remaining)
+    args.plain = pre_args.plain
 
     if args.group is None:
         parser.print_help()

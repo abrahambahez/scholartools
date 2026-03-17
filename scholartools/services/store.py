@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from pydantic import ValidationError
+
 from scholartools.models import (
     AddResult,
     DeleteResult,
@@ -26,6 +28,11 @@ async def add_reference(ref: dict, ctx: LibraryCtx) -> AddResult:
         ref = {**ref, "id": key}
     elif ref["id"] in existing_ids:
         return AddResult(error=f"duplicate citekey: {ref['id']}")
+
+    try:
+        Reference.model_validate(ref)
+    except ValidationError as e:
+        return AddResult(error=str(e))
 
     records.append(ref)
     await ctx.write_all(records)
