@@ -56,7 +56,8 @@ async def unlink_file(citekey: str, ctx: LibraryCtx) -> UnlinkResult:
 
 
 async def move_file(citekey: str, dest_name: str, ctx: LibraryCtx) -> MoveResult:
-    """Actualiza el path registrado en _file (el rename físico lo hace rename_citekey.py)."""
+    """Actualiza el path registrado en _file
+    (el rename físico lo hace rename_citekey.py)."""
     records = await ctx.read_all()
     for r in records:
         if r.get("id") == citekey:

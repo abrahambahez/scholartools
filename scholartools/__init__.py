@@ -21,14 +21,11 @@ from scholartools.models import (
     ConflictRecord,
     DeleteResult,
     DeleteStagedResult,
-    DeviceIdentity,
     ExtractResult,
     FetchResult,
-    FileRow,
     FilesListResult,
     GetResult,
     LibraryCtx,
-    LinkResult,
     ListResult,
     ListStagedResult,
     MergeResult,
@@ -36,24 +33,45 @@ from scholartools.models import (
     PeerAddDeviceResult,
     PeerIdentity,
     PeerInitResult,
-    PeerRecord,
     PeerRegisterResult,
     PeerRevokeDeviceResult,
     PeerRevokeResult,
-    PeerSettings,
     PrefetchResult,
     PullResult,
     PushResult,
     Reference,
-    ReferenceRow,
     RenameResult,
     Result,
     SearchResult,
     StageResult,
-    SyncConfig,
-    UnlinkResult,
     UpdateResult,
-    VerifyEntryResult,
+)
+from scholartools.models import (
+    DeviceIdentity as DeviceIdentity,
+)
+from scholartools.models import (
+    FileRow as FileRow,
+)
+from scholartools.models import (
+    LinkResult as LinkResult,
+)
+from scholartools.models import (
+    PeerRecord as PeerRecord,
+)
+from scholartools.models import (
+    PeerSettings as PeerSettings,
+)
+from scholartools.models import (
+    ReferenceRow as ReferenceRow,
+)
+from scholartools.models import (
+    SyncConfig as SyncConfig,
+)
+from scholartools.models import (
+    UnlinkResult as UnlinkResult,
+)
+from scholartools.models import (
+    VerifyEntryResult as VerifyEntryResult,
 )
 from scholartools.services import extract, fetch, files, search, store
 from scholartools.services import merge as merge_service
@@ -153,7 +171,8 @@ def _run(coro):
 
 
 def reset() -> None:
-    """Fuerza recarga de config y contexto (útil en tests o tras cambiar .scholartools/config.json)."""
+    """Fuerza recarga de config y contexto
+    (útil en tests o tras cambiar .scholartools/config.json)."""
     global _ctx
     from scholartools.config import reset_settings
 

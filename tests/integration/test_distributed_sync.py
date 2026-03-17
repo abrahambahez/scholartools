@@ -384,7 +384,8 @@ def test_resolve_conflict_end_to_end(tmp_path):
         patch("scholartools.adapters.s3_sync.upload", side_effect=s3.upload),
         patch("scholartools.config.CONFIG_PATH", config_mock),
     ):
-        # Manually reproduce resolve_conflict logic (since we can't easily use public API here)
+        # Manually reproduce resolve_conflict logic
+        # (since we can't easily use public API here)
         import json as _json
         import tempfile
 

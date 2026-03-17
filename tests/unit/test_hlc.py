@@ -31,7 +31,6 @@ def test_same_ms_increments():
     # simulate same millisecond by directly calling now and checking counter increments
     # We can't freeze time, so we manipulate state: if _last_ms matches current ms,
     # counter increments. We'll test via the exposed state.
-    before_counter = hlc._counter
     # Fake: set _last_ms to a future value that won't match real time
     future_ms = 9999999999999
     hlc._last_ms = future_ms
@@ -47,13 +46,13 @@ def test_same_ms_increments():
     # Now set _last_ms back to what was just set and call again — same ms → increment
     hlc._last_ms = cur_ms
     hlc._counter = cur_counter
-    ts2 = hlc.now("p")
+    hlc.now("p")
     # Could be same ms (counter 2) or new ms (counter 1)
     assert hlc._counter >= 1
 
 
 def test_explicit_same_ms_increment():
-    ts1 = hlc.now("peer")
+    hlc.now("peer")
     cur_ms = hlc._last_ms
     hlc._last_ms = cur_ms  # ensure same ms on next call
     # Force counter to known value

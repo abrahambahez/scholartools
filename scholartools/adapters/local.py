@@ -59,8 +59,6 @@ def make_staging_storage(
 def make_filestore(
     files_dir: str,
 ) -> tuple[CopyFile, DeleteFile, RenameFile, ListFilePaths]:
-    base = Path(files_dir)
-
     async def copy_file(src: str, dest: str) -> None:
         Path(dest).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, dest)

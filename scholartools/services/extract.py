@@ -53,7 +53,7 @@ def _extract_with_pdfplumber(file_path: str) -> tuple[dict, float]:
     if years:
         fields["issued"] = {"date-parts": [[int(years[0])]]}
 
-    lines = [l.strip() for l in text.splitlines() if l.strip()]
+    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
     for line in lines:
         if len(line) > 15 and not _YEAR_RE.fullmatch(line):
             fields["title"] = line

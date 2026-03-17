@@ -1,7 +1,8 @@
 """Generación de citekeys con convención de la bóveda.
 
 Configuración en CitekeySettings (config.json > citekey).
-Defaults: {author[2]}{year}, separator="_", etal="_etal", disambiguation_suffix="letters"
+Defaults: {author[2]}{year}, separator="_", etal="_etal",
+disambiguation_suffix="letters"
 """
 
 import re

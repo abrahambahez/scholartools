@@ -2,7 +2,8 @@
 
 Usage:
     # First researcher (admin):
-    uv run python scripts/bootstrap_identity.py --peer-id sabhz --device-id laptop --role admin
+    uv run python scripts/bootstrap_identity.py \
+        --peer-id sabhz --device-id laptop --role admin
 
     # Additional researcher (contributor):
     uv run python scripts/bootstrap_identity.py --peer-id alice --device-id laptop

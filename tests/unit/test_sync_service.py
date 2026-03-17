@@ -163,7 +163,7 @@ def test_push_uploads_entries(tmp_path):
 
     with (
         patch("scholartools.services.sync.CONFIG_PATH") as mcp,
-        patch("scholartools.adapters.s3_sync.upload") as mock_upload,
+        patch("scholartools.adapters.s3_sync.upload"),
     ):
         key_path = MagicMock()
         key_path.exists.return_value = True
@@ -384,7 +384,7 @@ def test_pull_lww_skips_older_remote(tmp_path):
 
         mock_dl.side_effect = fake_dl
 
-        result = asyncio.run(pull(ctx))
+        asyncio.run(pull(ctx))
 
     assert records[0]["title"] == "Local Title"
 
@@ -457,7 +457,8 @@ def test_pull_delete_with_local_edit_conflict(tmp_path):
         data={},
         peer_id="peer-b",
         device_id="dev-2",
-        timestamp_hlc="2024-06-01T00:00:10.000Z-0001-peer-b",  # deletion older than local edit
+        # deletion older than local edit
+        timestamp_hlc="2024-06-01T00:00:10.000Z-0001-peer-b",
         signature="v",
     )
 

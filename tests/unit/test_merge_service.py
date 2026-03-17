@@ -248,7 +248,8 @@ async def test_merge_empty_staging_does_not_write_library():
 
 
 async def test_merge_schema_validated_before_file_archived():
-    """A record with a file but missing required fields must NOT have its file copied."""
+    """A record with a file but missing required fields
+    must NOT have its file copied."""
     file_rec = {
         "path": "/tmp/staging/bad.pdf",
         "mime_type": "application/pdf",

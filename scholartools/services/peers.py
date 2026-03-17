@@ -213,7 +213,10 @@ async def peer_register_self(ctx: LibraryCtx) -> Result:
     if peers_dir.exists() and any(peers_dir.iterdir()):
         return Result(
             ok=False,
-            error="peer directory is not empty; use peer_register() with an existing admin",
+            error=(
+                "peer directory is not empty;"
+                " use peer_register() with an existing admin"
+            ),
         )
     key_path = CONFIG_PATH.parent / "keys" / ctx.peer_id / f"{ctx.device_id}.key"
     if not key_path.exists():

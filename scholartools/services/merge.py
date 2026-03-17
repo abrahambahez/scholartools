@@ -2,6 +2,7 @@ from pathlib import Path
 
 from scholartools.models import DateField, LibraryCtx, MergeResult, Reference
 from scholartools.services.duplicates import is_duplicate
+from scholartools.services.uid import compute_uid
 
 _REQUIRED = ("id", "type", "title", "author", "issued")
 _CONTAINER_TYPES = {
@@ -20,18 +21,6 @@ _BIBTEX_MAP = {
 
 def _normalize_fields(record: dict) -> dict:
     ref = Reference.model_validate(record)
-    known = ref.model_fields_set | {
-        "id",
-        "type",
-        "title",
-        "author",
-        "issued",
-        "DOI",
-        "URL",
-        "added_at",
-        "_file",
-        "_warnings",
-    }
     extra = ref.model_extra or {}
 
     mapped: dict = {}
@@ -109,7 +98,8 @@ async def merge(
         ref = Reference.model_validate(normalized)
         if ref.uid_confidence == "semantic" and not allow_semantic:
             errors[citekey] = (
-                "semantic uid confidence requires explicit confirmation (allow_semantic=True)"
+                "semantic uid confidence requires explicit confirmation"
+                " (allow_semantic=True)"
             )
             continue
         dup_key = is_duplicate(ref, library_refs)

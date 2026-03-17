@@ -41,7 +41,8 @@ def load_settings() -> Settings:
     if _settings.sync is not None and _settings.peer is None:
         raise ValueError(
             "config.json has a 'sync' block but no 'peer' block. "
-            "Add a 'peer' block with 'peer_id' and 'device_id' to identify this researcher."
+            "Add a 'peer' block with 'peer_id' and 'device_id' to identify"
+            " this researcher."
         )
     return _settings
 
