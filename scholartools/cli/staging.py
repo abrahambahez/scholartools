@@ -25,12 +25,20 @@ def _stage(args: argparse.Namespace) -> None:
             file=sys.stdout,
         )
         sys.exit(1)
-    result = scholartools.stage_reference(ref_dict, file_path=args.file)
+    try:
+        result = scholartools.stage_reference(ref_dict, file_path=args.file)
+    except Exception as e:
+        print(json.dumps({"ok": False, "data": None, "error": str(e)}))
+        sys.exit(1)
     exit_result(result, args.plain)
 
 
 def _list_staged(args: argparse.Namespace) -> None:
-    result = scholartools.list_staged(page=args.page)
+    try:
+        result = scholartools.list_staged(page=args.page)
+    except Exception as e:
+        print(json.dumps({"ok": False, "data": None, "error": str(e)}))
+        sys.exit(1)
     if args.plain and hasattr(result, "references"):
         rows = result.references
         header = f"{'citekey':<20} {'title':<40} {'authors':<30} {'year':<6}"
@@ -46,13 +54,21 @@ def _list_staged(args: argparse.Namespace) -> None:
 
 
 def _delete_staged(args: argparse.Namespace) -> None:
-    result = scholartools.delete_staged(args.citekey)
+    try:
+        result = scholartools.delete_staged(args.citekey)
+    except Exception as e:
+        print(json.dumps({"ok": False, "data": None, "error": str(e)}))
+        sys.exit(1)
     exit_result(result, args.plain)
 
 
 def _merge(args: argparse.Namespace) -> None:
     omit = [k.strip() for k in args.omit.split(",")] if args.omit else None
-    result = scholartools.merge(omit=omit, allow_semantic=args.allow_semantic)
+    try:
+        result = scholartools.merge(omit=omit, allow_semantic=args.allow_semantic)
+    except Exception as e:
+        print(json.dumps({"ok": False, "data": None, "error": str(e)}))
+        sys.exit(1)
     exit_result(result, args.plain)
 
 

@@ -25,14 +25,20 @@ def _add(args: argparse.Namespace) -> None:
         ref_dict = json.loads(raw)
     except json.JSONDecodeError as e:
         exit_result(Result(ok=False, error=str(e)), plain=False)
-    result = scholartools.add_reference(ref_dict)
+    try:
+        result = scholartools.add_reference(ref_dict)
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
     exit_result(result, args.plain)
 
 
 def _get(args: argparse.Namespace) -> None:
-    result = scholartools.get_reference(
-        citekey=args.citekey, uid=getattr(args, "uid", None)
-    )
+    try:
+        result = scholartools.get_reference(
+            citekey=args.citekey, uid=getattr(args, "uid", None)
+        )
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
     exit_result(result, args.plain)
 
 
@@ -42,22 +48,34 @@ def _update(args: argparse.Namespace) -> None:
         fields = json.loads(raw)
     except json.JSONDecodeError as e:
         exit_result(Result(ok=False, error=str(e)), plain=False)
-    result = scholartools.update_reference(args.citekey, fields)
+    try:
+        result = scholartools.update_reference(args.citekey, fields)
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
     exit_result(result, args.plain)
 
 
 def _rename(args: argparse.Namespace) -> None:
-    result = scholartools.rename_reference(args.old, args.new)
+    try:
+        result = scholartools.rename_reference(args.old, args.new)
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
     exit_result(result, args.plain)
 
 
 def _delete(args: argparse.Namespace) -> None:
-    result = scholartools.delete_reference(args.citekey)
+    try:
+        result = scholartools.delete_reference(args.citekey)
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
     exit_result(result, args.plain)
 
 
 def _list(args: argparse.Namespace) -> None:
-    result = scholartools.list_references(page=args.page)
+    try:
+        result = scholartools.list_references(page=args.page)
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
     if args.plain:
         print(_fmt_table(result.references))
         sys.exit(0)
@@ -65,15 +83,18 @@ def _list(args: argparse.Namespace) -> None:
 
 
 def _filter(args: argparse.Namespace) -> None:
-    result = scholartools.filter_references(
-        query=args.query,
-        author=args.author,
-        year=int(args.year) if args.year else None,
-        ref_type=getattr(args, "type", None),
-        has_file=True if args.has_file else None,
-        staging=args.staging,
-        page=args.page,
-    )
+    try:
+        result = scholartools.filter_references(
+            query=args.query,
+            author=args.author,
+            year=int(args.year) if args.year else None,
+            ref_type=getattr(args, "type", None),
+            has_file=True if args.has_file else None,
+            staging=args.staging,
+            page=args.page,
+        )
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
     if args.plain:
         print(_fmt_table(result.references))
         sys.exit(0)

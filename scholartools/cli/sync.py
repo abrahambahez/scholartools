@@ -4,26 +4,41 @@ import sys
 
 import scholartools
 from scholartools.cli._fmt import exit_result
+from scholartools.models import Result
 
 
 def _push(args: argparse.Namespace) -> None:
-    result = scholartools.push()
+    try:
+        result = scholartools.push()
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
     exit_result(result, args.plain)
 
 
 def _pull(args: argparse.Namespace) -> None:
-    result = scholartools.pull()
+    try:
+        result = scholartools.pull()
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
     exit_result(result, args.plain)
 
 
 def _snapshot(args: argparse.Namespace) -> None:
-    scholartools.create_snapshot()
+    try:
+        scholartools.create_snapshot()
+    except Exception as e:
+        print(json.dumps({"ok": False, "data": None, "error": str(e)}))
+        sys.exit(1)
     print(json.dumps({"ok": True, "data": None, "error": None}))
     sys.exit(0)
 
 
 def _list_conflicts(args: argparse.Namespace) -> None:
-    conflicts = scholartools.list_conflicts()
+    try:
+        conflicts = scholartools.list_conflicts()
+    except Exception as e:
+        print(json.dumps({"ok": False, "data": None, "error": str(e)}))
+        sys.exit(1)
     print(
         json.dumps(
             {"ok": True, "data": [c.model_dump() for c in conflicts], "error": None}
@@ -33,12 +48,18 @@ def _list_conflicts(args: argparse.Namespace) -> None:
 
 
 def _resolve_conflict(args: argparse.Namespace) -> None:
-    result = scholartools.resolve_conflict(args.uid, args.field, args.value)
+    try:
+        result = scholartools.resolve_conflict(args.uid, args.field, args.value)
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
     exit_result(result, args.plain)
 
 
 def _restore(args: argparse.Namespace) -> None:
-    result = scholartools.restore_reference(args.citekey)
+    try:
+        result = scholartools.restore_reference(args.citekey)
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
     exit_result(result, args.plain)
 
 

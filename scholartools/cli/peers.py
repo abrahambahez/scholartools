@@ -4,7 +4,7 @@ import sys
 
 import scholartools
 from scholartools.cli._fmt import exit_result, read_arg
-from scholartools.models import PeerIdentity
+from scholartools.models import PeerIdentity, Result
 
 
 def _parse_identity(raw: str) -> PeerIdentity:
@@ -17,36 +17,54 @@ def _parse_identity(raw: str) -> PeerIdentity:
 
 
 def _init(args: argparse.Namespace) -> None:
-    result = scholartools.peer_init(args.peer_id, args.device_id)
+    try:
+        result = scholartools.peer_init(args.peer_id, args.device_id)
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
     exit_result(result, args.plain)
 
 
 def _register(args: argparse.Namespace) -> None:
     raw = read_arg(args.identity_json, stdin=sys.stdin)
     identity = _parse_identity(raw)
-    result = scholartools.peer_register(identity)
+    try:
+        result = scholartools.peer_register(identity)
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
     exit_result(result, args.plain)
 
 
 def _add_device(args: argparse.Namespace) -> None:
     raw = read_arg(args.identity_json, stdin=sys.stdin)
     identity = _parse_identity(raw)
-    result = scholartools.peer_add_device(args.peer_id, identity)
+    try:
+        result = scholartools.peer_add_device(args.peer_id, identity)
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
     exit_result(result, args.plain)
 
 
 def _revoke_device(args: argparse.Namespace) -> None:
-    result = scholartools.peer_revoke_device(args.peer_id, args.device_id)
+    try:
+        result = scholartools.peer_revoke_device(args.peer_id, args.device_id)
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
     exit_result(result, args.plain)
 
 
 def _revoke(args: argparse.Namespace) -> None:
-    result = scholartools.peer_revoke(args.peer_id)
+    try:
+        result = scholartools.peer_revoke(args.peer_id)
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
     exit_result(result, args.plain)
 
 
 def _register_self(args: argparse.Namespace) -> None:
-    result = scholartools.peer_register_self()
+    try:
+        result = scholartools.peer_register_self()
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
     exit_result(result, args.plain)
 
 

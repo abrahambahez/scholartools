@@ -5,20 +5,31 @@ import sys
 
 import scholartools
 from scholartools.cli._fmt import exit_result
+from scholartools.models import Result
 
 
 def _link(args: argparse.Namespace) -> None:
-    result = scholartools.link_file(args.citekey, args.path)
+    try:
+        result = scholartools.link_file(args.citekey, args.path)
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
     exit_result(result, args.plain)
 
 
 def _unlink(args: argparse.Namespace) -> None:
-    result = scholartools.unlink_file(args.citekey)
+    try:
+        result = scholartools.unlink_file(args.citekey)
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
     exit_result(result, args.plain)
 
 
 def _get(args: argparse.Namespace) -> None:
-    result = scholartools.get_file(args.citekey)
+    try:
+        result = scholartools.get_file(args.citekey)
+    except Exception as e:
+        print(json.dumps({"ok": False, "data": None, "error": str(e)}))
+        sys.exit(1)
     print(
         json.dumps({"ok": True, "data": str(result) if result else None, "error": None})
     )
@@ -26,12 +37,18 @@ def _get(args: argparse.Namespace) -> None:
 
 
 def _move(args: argparse.Namespace) -> None:
-    result = scholartools.move_file(args.citekey, args.dest_name)
+    try:
+        result = scholartools.move_file(args.citekey, args.dest_name)
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
     exit_result(result, args.plain)
 
 
 def _list(args: argparse.Namespace) -> None:
-    result = scholartools.list_files(page=args.page)
+    try:
+        result = scholartools.list_files(page=args.page)
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
     if args.plain:
         rows = result.files
         col_w = 20
@@ -49,7 +66,10 @@ def _list(args: argparse.Namespace) -> None:
 
 def _prefetch(args: argparse.Namespace) -> None:
     citekeys = [k.strip() for k in args.citekeys.split(",")] if args.citekeys else None
-    result = scholartools.prefetch_blobs(citekeys=citekeys)
+    try:
+        result = scholartools.prefetch_blobs(citekeys=citekeys)
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
     exit_result(result, args.plain)
 
 

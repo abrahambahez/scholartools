@@ -17,7 +17,7 @@ dependencies = [
 
 [project.scripts]
 scholartools-test = "scholartools._shell:main"
-scht = "scholartools._shell:main"
+scht = "scholartools.cli:main"
 
 [project.optional-dependencies]
 sync = ["boto3>=1.34"]
