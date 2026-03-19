@@ -18,8 +18,9 @@ def config():
 
 @pytest.fixture
 def mock_client():
-    with patch("scholartools.adapters.s3_sync._client") as p:
-        yield p.return_value
+    instance = MagicMock()
+    with patch("scholartools.adapters.s3_sync.Minio", return_value=instance):
+        yield instance
 
 
 def test_upload(config, mock_client, tmp_path):

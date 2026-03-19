@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -17,8 +17,9 @@ def config():
 
 @pytest.fixture
 def mock_client():
-    with patch("scholartools.adapters.s3_sync._client") as p:
-        yield p.return_value
+    instance = MagicMock()
+    with patch("scholartools.adapters.s3_sync.Minio", return_value=instance):
+        yield instance
 
 
 def test_upload_bytes_calls_put_object(config, mock_client):
