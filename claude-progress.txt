@@ -293,3 +293,37 @@ decisions:
   - all Result objects serialized via .model_dump() — no manual field reconstruction
 broken: 8 pre-existing S3/boto3 unit test failures (boto3 not installed in dev env, unrelated to MCP)
 next: local-file-progressive-enhancement (passes: false, spec 011) or audit feature
+
+--- [2026-03-19] session N+1 ---
+completed:
+  - feat 014 cli-build: tasks 01–04 implemented and reviewed (PASS)
+      task-01: .build/pyinstaller.spec (SPECPATH-relative paths, collect_data_files, hidden imports)
+      task-02: version stamping via collect_all(pydantic/pydantic_core/scholartools) + SCHT_VERSION env fallback; unit tests in tests/unit/test_cli_version.py
+      task-03: .github/workflows/build-release.yml — matrix build (macos-latest arm64, linux-x86_64, windows-x86_64)
+      task-04: .build/install.sh + .build/install.ps1 — bundled into zips via workflow
+  - CI pipeline working: 3 platform zips published on tag v0.9.1-rc1 (macos-arm64, linux-x86_64, windows-x86_64)
+  - Bug fixes during CI iteration:
+      collect_data → collect_data_files (PyInstaller 6.x API)
+      SPECPATH-relative paths in spec (was project-root-relative, broke CI)
+      uv pip install vs uv run pip install (ephemeral env issue)
+      collect_all(pydantic/pydantic_core) for C-extension bundling
+      macos-12 runner dropped (no runners available on this plan)
+pending:
+  - task-05: smoke test incomplete — binary runs on CI but produces no output on Fedora 43 / kernel 6.19 (local dev machine)
+  - macOS x86_64: macos-12 runner unavailable; spec still lists 4 platforms but only 3 built
+  - Linux bundle silent on Fedora (exits 0, zero stdout/stderr) — NOT tested on Ubuntu yet
+decisions:
+  - macos-13 unsupported on this plan → dropped; macos-12 also unavailable → dropped; only macos-latest (arm64) in matrix
+  - Test tag: v0.9.1-rc1 (still on remote — delete before final release)
+broken:
+  - Linux PyInstaller bundle silent on Fedora 43 + kernel 6.19: exits 0 with no output for any command (--version, refs list, --help). Not a glibc issue (requires 2.14, system has 2.42). Not SELinux (no AVC denials). Likely PyInstaller 6.x bootloader + kernel 6.19 incompatibility. Must test on Ubuntu to confirm binary works.
+  - macOS arm64 bundle: built by CI, not yet run locally (need Mac)
+  - Windows bundle: built by CI, not yet run locally (need Windows)
+next:
+  - Test linux bundle on Ubuntu (Docker or CI runner or separate machine)
+  - Test macOS arm64 bundle on Apple Silicon Mac
+  - Test Windows bundle on Windows machine
+  - If Linux bundle confirmed working on Ubuntu → Fedora issue is environment-specific, document as known limitation
+  - If Linux bundle broken everywhere → investigate PyInstaller bootloader further (try older PyInstaller, try --onefile, try different entry point)
+  - After multi-OS verification → flip task-05 done, update feature_list.json passes: true, commit
+  - Test tag v0.9.1-rc1 must be deleted before production release
