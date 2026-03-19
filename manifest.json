@@ -8,10 +8,10 @@
   },
   "server": {
     "type": "python",
-    "entry_point": "src/scholartools/mcp.py",
+    "entry_point": "scholartools/mcp_server.py",
     "mcp_config": {
       "command": "uv",
-      "args": ["run", "python", "${__dirname}/src/scholartools/mcp.py"],
+      "args": ["run", "--project", "${__dirname}", "scht-mcp"],
       "env": {
         "ANTHROPIC_API_KEY": "${user_config.ANTHROPIC_API_KEY}",
         "SCHOLARTOOLS_LIBRARY_PATH": "${user_config.SCHOLARTOOLS_LIBRARY_PATH}",

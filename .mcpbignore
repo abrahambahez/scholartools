@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+.ruff_cache/
+.pytest_cache/
+*.pyc
+tests/
+docs/
+specs/
+scripts/
+evals/
+.claude/
+claude-progress.txt
+CHANGELOG.md
+scholartools.mcpb
+*.mcpb
