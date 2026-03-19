@@ -42,10 +42,9 @@ New-Item -ItemType Directory -Path $tmp | Out-Null
 
 Write-Host "Downloading $filename..."
 Invoke-WebRequest -Uri $url -OutFile "$tmp\$filename"
-Expand-Archive -Path "$tmp\$filename" -DestinationPath $tmp
-
 if (Test-Path $BinDir) { Remove-Item -Recurse -Force $BinDir }
-Copy-Item "$tmp\scht" $BinDir -Recurse
+New-Item -ItemType Directory -Force -Path $BinDir | Out-Null
+Expand-Archive -Path "$tmp\$filename" -DestinationPath $BinDir
 Remove-Item -Recurse -Force $tmp
 
 $currentPath = [Environment]::GetEnvironmentVariable("Path", $pathScope)
