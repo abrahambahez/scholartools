@@ -17,11 +17,9 @@ dependencies = [
 
 [project.scripts]
 scht = "scholartools.cli:main"
-scht-mcp = "scholartools.mcp_server:main"
 
 [project.optional-dependencies]
 sync = ["boto3>=1.34"]
-mcp = ["mcp>=1.0"]
 
 [dependency-groups]
 dev = [
