@@ -4,17 +4,19 @@ Reference management library built for AI agents. Local-first, no GUI, no human 
 
 ## install
 
-```bash
-git clone https://github.com/abrahambahez/scholartools
-cd scholartools
-uv sync
-```
-
-To use `scht` without `uv run`, install as a tool:
+macOS / Linux:
 
 ```bash
-uv tool install .
+curl -fsSL https://raw.githubusercontent.com/abrahambahez/scholartools/main/install.sh | bash
 ```
+
+Windows (elevated PowerShell):
+
+```powershell
+irm https://raw.githubusercontent.com/abrahambahez/scholartools/main/install.ps1 | iex
+```
+
+Re-running the script updates the binary in place.
 
 ## config
 
