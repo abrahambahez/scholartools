@@ -1,5 +1,6 @@
 import argparse
 import importlib.metadata
+import os
 import sys
 
 from scholartools.cli import discover as _discover
@@ -34,7 +35,7 @@ def _build_parser() -> argparse.ArgumentParser:
     try:
         version = importlib.metadata.version("scholartools")
     except importlib.metadata.PackageNotFoundError:
-        version = "unknown"
+        version = os.environ.get("SCHT_VERSION", "unknown")
 
     parser = argparse.ArgumentParser(
         prog="scht",
