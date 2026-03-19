@@ -7,41 +7,42 @@ From docs/feats/014-cli-build.md:
 The `scht` CLI (completed in spec 012-cli) currently requires Python, uv, and a virtual environment at the user's site. The goal is to package it as standalone executables for distribution alongside Claude Desktop skills.
 
 **Distribution model:**
-- Four platform bundles (macOS arm64, macOS x86_64, Linux x86_64, Windows x86_64)
+- Three platform bundles (macOS arm64, Linux x86_64, Windows x86_64)
 - Each published as a `.zip` containing a directory bundle (not a single fat binary)
 - Faster startup and reduced friction compared to onefile PyInstaller approach
 - Top-level binary: `scht` (macOS/Linux) or `scht.exe` (Windows)
+- Two standalone install scripts (`install.sh`, `install.ps1`) published as separate release assets — not bundled inside the zips
 
 **Build pipeline:**
 - GitHub Actions matrix build triggered on version tags (`v*`)
-- One runner per OS platform
+- One runner per OS (macOS arm64, Linux x86_64, Windows x86_64)
 - PyInstaller used to bundle the CLI with hidden imports for `pdfplumber`, `cryptography`, `minio`
-- Version string stamped from `pyproject.toml` into the binary
-- Exposed via `scht --version`
+- Version string stamped from `pyproject.toml` into the binary, exposed via `scht --version`
+- Linux runner additionally uploads `install.sh` and `install.ps1` as release assets
 
 **User expectations:**
-- Unzip bundle, run install script, `scht` on PATH
+- Run install script once (bootstrapper downloads binary, sets PATH, creates initial config)
 - No Python or uv dependency at user's site
 - `scht --version` reports correct release version
 - `scht refs list` works correctly
-- All four platform zips published on every version tag
+- Three platform zips plus both install scripts published on every version tag
 
 ## objective
 
-Build and release a PyInstaller-based distribution pipeline that packages the `scht` CLI as standalone, zero-dependency executables for macOS, Linux, and Windows. Researchers download a platform-specific zip, run an install script, and use `scht` without managing Python or virtual environments. GitHub Actions handles multi-platform builds triggered by version tags; each build includes hidden imports for dependencies (pdfplumber, cryptography, boto3/botocore) and stamps the version from `pyproject.toml` into the binary.
+Build and release a PyInstaller-based distribution pipeline that packages the `scht` CLI as standalone, zero-dependency executables for macOS, Linux, and Windows. Researchers run a standalone install script once — it downloads the correct platform zip, extracts the binary, sets up PATH, and creates an initial config. GitHub Actions handles multi-platform builds triggered by version tags; each build includes hidden imports for dependencies (pdfplumber, cryptography, boto3/botocore) and stamps the version from `pyproject.toml` into the binary. Install scripts are separate release assets, not bundled inside platform zips.
 
 ## acceptance criteria (EARS format)
 
-- when a version tag `v*` is pushed, the system must trigger a GitHub Actions matrix build
-- when the GitHub Actions build completes, the system must publish exactly four `.zip` assets to the release: `scht-<version>-macos-arm64.zip`, `scht-<version>-macos-x86_64.zip`, `scht-<version>-linux-x86_64.zip`, `scht-<version>-windows-x86_64.zip`
-- when a researcher on macOS downloads and unzips `scht-<version>-macos-arm64.zip`, the system must contain a top-level `scht` binary executable on that platform
+- when a version tag `v*` is pushed, the system must trigger a GitHub Actions matrix build across macOS arm64, Linux x86_64, and Windows x86_64
+- when the GitHub Actions build completes, the system must publish exactly three `.zip` assets (`scht-<version>-macos-arm64.zip`, `scht-<version>-linux-x86_64.zip`, `scht-<version>-windows-x86_64.zip`) plus `install.sh` and `install.ps1` as separate release assets
+- when a researcher runs `install.sh` (macOS/Linux) or `install.ps1` (Windows), the system must download the correct platform zip, place the binary on PATH, and create an initial `~/.config/scholartools/config.json` via interactive prompts
+- when a researcher on macOS downloads and unzips `scht-<version>-macos-arm64.zip`, the system must contain a top-level `scht` binary executable
 - when a researcher on Linux downloads and unzips `scht-<version>-linux-x86_64.zip`, the system must contain a top-level `scht` binary executable
 - when a researcher on Windows downloads and unzips `scht-<version>-windows-x86_64.zip`, the system must contain a top-level `scht.exe` binary executable
-- when the researcher runs `./scht --version` from the unzipped bundle (without Python installed), the system must exit 0 and print the correct release version
-- when the researcher runs `./scht refs list` from the unzipped bundle, the system must execute successfully and return library references in JSON format
+- when the researcher runs `scht --version` (without Python installed), the system must exit 0 and print the correct release version
+- when the researcher runs `scht refs list`, the system must execute successfully and return library references in JSON format
 - when a PyInstaller bundle is built, the system must include pdfplumber, cryptography, and minio as hidden imports regardless of direct imports at the CLI entry point
 - when `scht --version` is called, the system must report the version string from `pyproject.toml` (not a stale hardcoded value)
-- when a researcher unpacks the bundle and adds the directory to their PATH, the system must allow them to call `scht` from any working directory
 
 ## tasks
 
@@ -64,10 +65,10 @@ Build and release a PyInstaller-based distribution pipeline that packages the `s
   - Each runner: install uv, sync deps, run PyInstaller, zip bundle, upload to release
   - Ensure version is passed to PyInstaller and stamped into binary
 
-- [x] task-04: create install script and distribution layout (blocks: task-03)
-  - Create install script (shell for macOS/Linux, batch/ps1 for Windows) in each bundle
-  - Script copies `scht` binary to a system PATH location or user bin directory
-  - Verify script is included in all four zips
+- [x] task-04: create standalone install scripts as separate release assets (blocks: task-03)
+  - `install.sh`: downloads correct platform zip from GitHub releases, extracts to `~/.local/bin`, patches shell rc files for PATH, creates `~/.config/scholartools/config.json` via interactive prompts (email, library path, sources)
+  - `install.ps1`: same flow for Windows — installs to `%LOCALAPPDATA%\Programs\scht`, persists PATH via `[Environment]::SetEnvironmentVariable`, writes config to `%USERPROFILE%\.config\scholartools\config.json`
+  - Scripts are NOT bundled inside platform zips — uploaded as standalone release assets from the Linux CI runner
 
 - [ ] task-05: smoke test the release pipeline (blocks: task-04)
   - Tag a test version locally (e.g., `v0.1.0-test`)

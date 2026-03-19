@@ -12,18 +12,21 @@ Researchers using scholartools via Claude Desktop skills, who should not need to
 
 ## the distribution model
 
-Each GitHub release publishes three platform assets as zip archives:
+Each GitHub release publishes three platform zip assets and two standalone install scripts:
 
 - `scht-<version>-macos-arm64.zip`
-- `scht-<version>-macos-x86_64.zip`
 - `scht-<version>-linux-x86_64.zip`
 - `scht-<version>-windows-x86_64.zip`
+- `install.sh` (macOS/Linux bootstrapper)
+- `install.ps1` (Windows bootstrapper)
 
-Each archive contains a directory bundle (not a single fat binary) — faster startup than onefile packaging, with the same user-facing simplicity. The top-level binary is named `scht` on macOS/Linux and `scht.exe` on Windows.
+Each archive contains a directory bundle (not a single fat binary) — faster startup than onefile packaging. The top-level binary is named `scht` on macOS/Linux and `scht.exe` on Windows.
+
+**Install scripts are not bundled inside the zips.** They are standalone bootstrappers uploaded as separate release assets. A researcher runs the script once (like installing Homebrew or winget) — it downloads the correct platform zip, extracts the binary to a PATH location, persists the PATH entry, and interactively creates an initial `~/.config/scholartools/config.json` (email, library path, enabled sources).
 
 ## build pipeline
 
-GitHub Actions matrix build — one runner per OS, triggered on version tags (`v*`). Each runner produces its platform bundle and uploads it as a release asset. The version string is stamped into the binary from `pyproject.toml` at build time, surfaced via `scht --version`.
+GitHub Actions matrix build — one runner per OS (macOS arm64, Linux x86_64, Windows x86_64), triggered on version tags (`v*`). Each runner produces its platform zip and uploads it as a release asset. The Linux runner additionally uploads `install.sh` and `install.ps1` as release assets. The version string is stamped into the binary from `pyproject.toml` at build time, surfaced via `scht --version`.
 
 PyInstaller is used to produce the bundles. Hidden imports for `pdfplumber`, `cryptography`, and the optional `minio` sync stack are declared explicitly in the build spec so they are included even when not directly imported at the entry point.
 
@@ -31,7 +34,7 @@ Environment variables (API keys, config paths) are entirely the user's responsib
 
 ## success criteria
 
-- A researcher on macOS, Linux, or Windows can unzip the bundle and call `scht --version` without having Python installed
+- A researcher on macOS, Linux, or Windows can run the install script and have `scht` on their PATH without Python installed
 - `scht refs list` works correctly in the installed bundle
 - `scht --version` reports the correct release version
-- GitHub Actions publishes all four platform zips on every version tag push
+- GitHub Actions publishes all three platform zips plus both install scripts on every version tag push
