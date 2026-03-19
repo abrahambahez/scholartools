@@ -89,3 +89,7 @@ def main() -> None:
         args.func(args)
     else:
         _not_implemented(args)
+
+
+if __name__ == "__main__":
+    main()
