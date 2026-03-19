@@ -1,12 +1,12 @@
 # -*- mode: python ; coding: utf-8 -*-
-import sys
-from PyInstaller.utils.hooks import collect_data
+import os
+from PyInstaller.utils.hooks import collect_data_files
 
 a = Analysis(
-    ["../scholartools/cli/__init__.py"],
-    pathex=[".."],
+    [os.path.join(SPECPATH, "..", "scholartools", "cli", "__init__.py")],
+    pathex=[os.path.join(SPECPATH, "..")],
     binaries=[],
-    datas=collect_data("scholartools"),
+    datas=collect_data_files("scholartools"),
     hiddenimports=[
         "pdfplumber",
         "pdfplumber.utils",
