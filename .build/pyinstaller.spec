@@ -1,13 +1,20 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os
-from PyInstaller.utils.hooks import collect_data_files
+from PyInstaller.utils.hooks import collect_all, collect_data_files
+
+datas, binaries, hiddenimports = [], [], []
+for _pkg in ["pydantic", "pydantic_core", "scholartools"]:
+    _d, _b, _h = collect_all(_pkg)
+    datas += _d; binaries += _b; hiddenimports += _h
+
+datas += collect_data_files("scholartools")
 
 a = Analysis(
     [os.path.join(SPECPATH, "..", "scholartools", "cli", "__init__.py")],
     pathex=[os.path.join(SPECPATH, "..")],
-    binaries=[],
-    datas=collect_data_files("scholartools"),
-    hiddenimports=[
+    binaries=binaries,
+    datas=datas,
+    hiddenimports=hiddenimports + [
         "pdfplumber",
         "pdfplumber.utils",
         "pdfminer",
@@ -21,6 +28,10 @@ a = Analysis(
         "urllib3",
         "certifi",
         "charset_normalizer",
+        "httpx",
+        "anyio",
+        "anyio._backends._asyncio",
+        "annotated_types",
     ],
     hookspath=[],
     hooksconfig={},
