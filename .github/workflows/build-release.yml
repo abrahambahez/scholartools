@@ -51,15 +51,6 @@ jobs:
       - name: Build with PyInstaller
         run: uv run pyinstaller .build/pyinstaller.spec --distpath dist --workpath .build/work --noconfirm
 
-      - name: Copy install script (Unix)
-        if: runner.os != 'Windows'
-        run: cp .build/install.sh dist/scht/install.sh
-
-      - name: Copy install script (Windows)
-        if: runner.os == 'Windows'
-        run: Copy-Item .build\install.ps1 dist\scht\install.ps1
-        shell: pwsh
-
       - name: Zip bundle (Unix)
         if: runner.os != 'Windows'
         run: cd dist && zip -r ../scht-${{ env.SCHT_VERSION }}-${{ matrix.platform }}.zip scht/
@@ -69,7 +60,15 @@ jobs:
         shell: pwsh
         run: Compress-Archive -Path dist\scht\* -DestinationPath scht-${{ env.SCHT_VERSION }}-${{ matrix.platform }}.zip
 
-      - name: Upload to release
+      - name: Upload zip
         uses: softprops/action-gh-release@v2
         with:
           files: scht-${{ env.SCHT_VERSION }}-${{ matrix.platform }}.zip
+
+      - name: Upload install scripts (Linux job only)
+        if: matrix.platform == 'linux-x86_64'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            .build/install.sh
+            .build/install.ps1
