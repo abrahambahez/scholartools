@@ -25,5 +25,26 @@ def ingest_file(file_path: str) -> dict:
     return st.extract_from_file(file_path).model_dump()
 
 
+@mcp.tool()
+def staging(
+    action: str,
+    page: int = 1,
+    citekey: str | None = None,
+    omit: list[str] | None = None,
+    allow_semantic: bool = False,
+) -> dict:
+    """Use when reviewing, trimming, or promoting staged references. Call with action='list' to see candidates, action='delete' to remove a specific citekey, or action='merge' to promote staged refs to the committed library."""
+    if action == "list":
+        return st.list_staged(page=page).model_dump()
+    elif action == "delete":
+        if not citekey:
+            return {"error": "citekey required for delete"}
+        return st.delete_staged(citekey).model_dump()
+    elif action == "merge":
+        return st.merge(omit=omit, allow_semantic=allow_semantic).model_dump()
+    else:
+        return {"error": f"unknown action: {action}"}
+
+
 def main():
     mcp.run()

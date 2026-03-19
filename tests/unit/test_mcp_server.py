@@ -42,6 +42,32 @@ def test_ingest_file_path_traversal():
     assert result == {"error": "path traversal not allowed"}
 
 
+def test_staging_unknown_action():
+    result = mcp_server.staging("unknown")
+    assert result == {"error": "unknown action: unknown"}
+
+
+def test_staging_delete_missing_citekey():
+    result = mcp_server.staging("delete")
+    assert result == {"error": "citekey required for delete"}
+
+
+def test_staging_list():
+    mock_result = MagicMock()
+    mock_result.model_dump.return_value = {"items": [], "total": 0}
+    with patch("scholartools.mcp_server.st.list_staged", return_value=mock_result):
+        result = mcp_server.staging("list")
+    assert isinstance(result, dict)
+
+
+def test_staging_merge():
+    mock_result = MagicMock()
+    mock_result.model_dump.return_value = {"promoted": [], "skipped": []}
+    with patch("scholartools.mcp_server.st.merge", return_value=mock_result):
+        result = mcp_server.staging("merge")
+    assert isinstance(result, dict)
+
+
 def test_tool_descriptions_present():
     tools = {t.name: t for t in mcp_server.mcp._tool_manager.list_tools()}
     assert "discover" in tools
