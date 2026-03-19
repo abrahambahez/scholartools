@@ -1,7 +1,7 @@
-import sys
 from unittest.mock import MagicMock, patch
 
 import pytest
+from minio.error import S3Error
 
 from scholartools.models import SyncConfig
 
@@ -16,95 +16,73 @@ def config():
     )
 
 
-@pytest.fixture(autouse=True)
-def mock_boto3(monkeypatch):
-    boto3_mock = MagicMock()
-    botocore_mock = MagicMock()
-    botocore_config_mock = MagicMock()
-    monkeypatch.setitem(sys.modules, "boto3", boto3_mock)
-    monkeypatch.setitem(sys.modules, "botocore", botocore_mock)
-    monkeypatch.setitem(sys.modules, "botocore.config", botocore_config_mock)
-    return boto3_mock
+@pytest.fixture
+def mock_client():
+    with patch("scholartools.adapters.s3_sync._client") as p:
+        yield p.return_value
 
 
-def test_upload(config, mock_boto3, tmp_path):
+def test_upload(config, mock_client, tmp_path):
     from scholartools.adapters import s3_sync
 
     local_file = tmp_path / "test.json"
     local_file.write_text("{}")
 
     s3_sync.upload(config, local_file, "changes/peer/ts.json")
-    mock_boto3.client.return_value.upload_file.assert_called_once_with(
-        str(local_file), "test-bucket", "changes/peer/ts.json"
+    mock_client.fput_object.assert_called_once_with(
+        "test-bucket", "changes/peer/ts.json", str(local_file)
     )
 
 
-def test_download(config, mock_boto3, tmp_path):
+def test_download(config, mock_client, tmp_path):
     from scholartools.adapters import s3_sync
 
     local_path = tmp_path / "out.json"
     s3_sync.download(config, "changes/peer/ts.json", local_path)
-    mock_boto3.client.return_value.download_file.assert_called_once_with(
+    mock_client.fget_object.assert_called_once_with(
         "test-bucket", "changes/peer/ts.json", str(local_path)
     )
 
 
-def test_list_keys(config, mock_boto3):
+def test_list_keys(config, mock_client):
     from scholartools.adapters import s3_sync
 
-    paginator = MagicMock()
-    paginator.paginate.return_value = [
-        {
-            "Contents": [
-                {"Key": "changes/peer/t1.json"},
-                {"Key": "changes/peer/t2.json"},
-            ]
-        },
-        {},
-    ]
-    mock_boto3.client.return_value.get_paginator.return_value = paginator
+    obj1 = MagicMock()
+    obj1.object_name = "changes/peer/t1.json"
+    obj2 = MagicMock()
+    obj2.object_name = "changes/peer/t2.json"
+    mock_client.list_objects.return_value = [obj1, obj2]
 
     result = s3_sync.list_keys(config, "changes/")
     assert result == ["changes/peer/t1.json", "changes/peer/t2.json"]
 
 
-def test_list_keys_empty(config, mock_boto3):
+def test_list_keys_empty(config, mock_client):
     from scholartools.adapters import s3_sync
 
-    paginator = MagicMock()
-    paginator.paginate.return_value = [{}]
-    mock_boto3.client.return_value.get_paginator.return_value = paginator
+    mock_client.list_objects.return_value = []
 
     result = s3_sync.list_keys(config, "changes/")
     assert result == []
 
 
-def test_exists_true(config, mock_boto3):
+def test_exists_true(config, mock_client):
     from scholartools.adapters import s3_sync
 
     result = s3_sync.exists(config, "changes/peer/ts.json")
     assert result is True
 
 
-def test_exists_false(config, mock_boto3):
+def test_exists_false(config, mock_client):
     from scholartools.adapters import s3_sync
 
-    mock_boto3.client.return_value.head_object.side_effect = Exception("not found")
+    mock_client.stat_object.side_effect = S3Error(
+        "NoSuchKey",
+        "The specified key does not exist.",
+        "/bucket/key",
+        "req-id",
+        "host-id",
+        None,
+    )
     result = s3_sync.exists(config, "missing.json")
     assert result is False
-
-
-def test_no_boto3_raises_import_error(monkeypatch):
-    monkeypatch.setitem(sys.modules, "boto3", None)
-    import scholartools.adapters.s3_sync as mod
-
-    config = SyncConfig(bucket="b", access_key="a", secret_key="s")
-
-    def broken_import(name, *args, **kwargs):
-        if name == "boto3":
-            raise ImportError("No module named 'boto3'")
-        return __import__(name, *args, **kwargs)
-
-    with patch("builtins.__import__", side_effect=broken_import):
-        with pytest.raises(ImportError, match="boto3 is required"):
-            mod._client(config)
