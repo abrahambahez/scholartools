@@ -1,55 +1,51 @@
+import io
 from pathlib import Path
+from urllib.parse import urlparse
+
+from minio import Minio
+from minio.error import S3Error
 
 from scholartools.models import SyncConfig
 
 
-def _client(config: SyncConfig):
-    try:
-        import boto3
-        from botocore.config import Config
-    except ImportError:
-        raise ImportError(
-            "boto3 is required for S3 sync. Install it with: uv sync --extra sync"
-        )
-    kwargs = dict(
-        aws_access_key_id=config.access_key,
-        aws_secret_access_key=config.secret_key,
-        config=Config(connect_timeout=10, read_timeout=60, retries={"max_attempts": 3}),
-    )
+def _client(config: SyncConfig) -> Minio:
     if config.endpoint:
-        kwargs["endpoint_url"] = config.endpoint
-    return boto3.client("s3", **kwargs)
+        parsed = urlparse(config.endpoint)
+        host = parsed.netloc or parsed.path
+        secure = parsed.scheme == "https"
+    else:
+        host = "s3.amazonaws.com"
+        secure = True
+    return Minio(
+        host, access_key=config.access_key, secret_key=config.secret_key, secure=secure
+    )
 
 
 def upload(config: SyncConfig, local_path: Path, remote_key: str) -> None:
-    _client(config).upload_file(str(local_path), config.bucket, remote_key)
+    _client(config).fput_object(config.bucket, remote_key, str(local_path))
 
 
 def download(config: SyncConfig, remote_key: str, local_path: Path) -> None:
     local_path.parent.mkdir(parents=True, exist_ok=True)
-    _client(config).download_file(config.bucket, remote_key, str(local_path))
+    _client(config).fget_object(config.bucket, remote_key, str(local_path))
 
 
 def list_keys(config: SyncConfig, prefix: str) -> list[str]:
-    paginator = _client(config).get_paginator("list_objects_v2")
-    keys = []
-    for page in paginator.paginate(Bucket=config.bucket, Prefix=prefix):
-        for obj in page.get("Contents", []):
-            keys.append(obj["Key"])
-    return keys
+    return [
+        obj.object_name
+        for obj in _client(config).list_objects(
+            config.bucket, prefix=prefix, recursive=True
+        )
+    ]
 
 
 def exists(config: SyncConfig, remote_key: str) -> bool:
     try:
-        _client(config).head_object(Bucket=config.bucket, Key=remote_key)
+        _client(config).stat_object(config.bucket, remote_key)
         return True
-    except Exception:
+    except S3Error:
         return False
 
 
 def upload_bytes(config: SyncConfig, data: bytes, remote_key: str) -> None:
-    import io
-
-    _client(config).put_object(
-        Bucket=config.bucket, Key=remote_key, Body=io.BytesIO(data)
-    )
+    _client(config).put_object(config.bucket, remote_key, io.BytesIO(data), len(data))
