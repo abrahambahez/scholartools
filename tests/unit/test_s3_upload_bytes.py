@@ -19,7 +19,11 @@ def config():
 @pytest.fixture(autouse=True)
 def mock_boto3(monkeypatch):
     boto3_mock = MagicMock()
+    botocore_mock = MagicMock()
+    botocore_config_mock = MagicMock()
     monkeypatch.setitem(sys.modules, "boto3", boto3_mock)
+    monkeypatch.setitem(sys.modules, "botocore", botocore_mock)
+    monkeypatch.setitem(sys.modules, "botocore.config", botocore_config_mock)
     return boto3_mock
 
 
