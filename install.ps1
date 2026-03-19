@@ -36,7 +36,7 @@ Write-Host "Installing scht $version"
 $versionNum = $version.TrimStart("v")
 $filename   = "scht-$versionNum-windows-x86_64.zip"
 $url        = "https://github.com/$Repo/releases/download/$version/$filename"
-$tmp        = New-TemporaryFile | ForEach-Object { $_.FullName + "_dir" }
+$tmp        = Join-Path ([System.IO.Path]::GetTempPath()) ([System.IO.Path]::GetRandomFileName())
 New-Item -ItemType Directory -Path $tmp | Out-Null
 
 Write-Host "Downloading $filename..."
