@@ -11,5 +11,4 @@ evals/
 .claude/
 claude-progress.txt
 CHANGELOG.md
-scholartools.mcpb
-*.mcpb
+dist/
