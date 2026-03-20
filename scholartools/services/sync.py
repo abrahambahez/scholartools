@@ -506,7 +506,12 @@ async def get_file(ctx: LibraryCtx, citekey: str) -> Path | None:
     file_rec = record.get("_file")
     if not file_rec:
         return None
-    p = Path(file_rec["path"])
+    raw = file_rec["path"]
+    p = Path(raw)
+    if not p.is_absolute():
+        p = Path(ctx.files_dir) / raw
+    elif not p.exists():
+        p = Path(ctx.files_dir) / p.name
     return p if p.exists() else None
 
 
