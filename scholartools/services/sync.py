@@ -425,6 +425,29 @@ async def attach_file(ctx: LibraryCtx, citekey: str, path: str) -> Result:
     return Result(ok=True)
 
 
+async def detach_file(ctx: LibraryCtx, citekey: str) -> Result:
+    records = await ctx.read_all()
+    record = next((r for r in records if r.get("id") == citekey), None)
+    if record is None:
+        return Result(ok=False, error=f"not found: {citekey}")
+
+    if record.get("blob_ref"):
+        return Result(ok=False, error="file is synced — call unsync_file first")
+
+    if not record.get("_file"):
+        return Result(ok=False, error="no file attached")
+
+    file_path = Path(ctx.files_dir) / record["_file"]["path"]
+    try:
+        file_path.unlink()
+    except FileNotFoundError:
+        pass
+
+    record.pop("_file")
+    await ctx.write_all(records)
+    return Result(ok=True)
+
+
 async def link_file(ctx: LibraryCtx, citekey: str, local_path: str) -> Result:
     if not ctx.data_dir:
         return Result(ok=False, error="data_dir not configured")

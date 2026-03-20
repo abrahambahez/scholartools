@@ -956,3 +956,85 @@ def test_attach_file_does_not_set_blob_ref(tmp_path):
     assert result.ok
     assert records[0].get("blob_ref") is None
     assert not (tmp_path / "change_log").exists()
+
+
+# --- detach_file tests ---
+
+
+def test_detach_file_synced_record_errors(tmp_path):
+    from scholartools.services.sync import detach_file
+
+    files_dir = tmp_path / "files"
+    files_dir.mkdir()
+    pdf = files_dir / "s2024.pdf"
+    pdf.write_bytes(b"data")
+    ctx, _ = make_ctx(
+        tmp_path,
+        records=[
+            {
+                "id": "s2024",
+                "type": "article",
+                "blob_ref": "sha256:abc",
+                "_file": {
+                    "path": "s2024.pdf",
+                    "mime_type": "application/pdf",
+                    "size_bytes": 4,
+                    "added_at": "2026-01-01T00:00:00+00:00",
+                },
+            }
+        ],
+    )
+    result = asyncio.run(detach_file(ctx, "s2024"))
+    assert not result.ok
+    assert "unsync_file" in result.error
+
+
+def test_detach_file_local_only_deletes_and_clears(tmp_path):
+    from scholartools.services.sync import detach_file
+
+    files_dir = tmp_path / "files"
+    files_dir.mkdir()
+    pdf = files_dir / "s2024.pdf"
+    pdf.write_bytes(b"data")
+    ctx, records = make_ctx(
+        tmp_path,
+        records=[
+            {
+                "id": "s2024",
+                "type": "article",
+                "_file": {
+                    "path": "s2024.pdf",
+                    "mime_type": "application/pdf",
+                    "size_bytes": 4,
+                    "added_at": "2026-01-01T00:00:00+00:00",
+                },
+            }
+        ],
+    )
+    result = asyncio.run(detach_file(ctx, "s2024"))
+    assert result.ok
+    assert records[0].get("_file") is None
+    assert not pdf.exists()
+
+
+def test_detach_file_missing_file_on_disk_still_clears(tmp_path):
+    from scholartools.services.sync import detach_file
+
+    ctx, records = make_ctx(
+        tmp_path,
+        records=[
+            {
+                "id": "s2024",
+                "type": "article",
+                "_file": {
+                    "path": "s2024.pdf",
+                    "mime_type": "application/pdf",
+                    "size_bytes": 4,
+                    "added_at": "2026-01-01T00:00:00+00:00",
+                },
+            }
+        ],
+    )
+    result = asyncio.run(detach_file(ctx, "s2024"))
+    assert result.ok
+    assert records[0].get("_file") is None
