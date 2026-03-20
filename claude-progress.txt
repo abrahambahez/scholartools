@@ -327,3 +327,19 @@ next:
   - If Linux bundle broken everywhere → investigate PyInstaller bootloader further (try older PyInstaller, try --onefile, try different entry point)
   - After multi-OS verification → flip task-05 done, update feature_list.json passes: true, commit
   - Test tag v0.9.1-rc1 must be deleted before production release
+
+--- [2026-03-19] session 18 ---
+completed:
+  - skills/en/: 4 agent skill reference cards (scholartools-config, scholartools-references,
+    scholartools-sync-peers, scholartools-files) in SKILL.md/directory format with YAML frontmatter
+  - skills/es/: same 4 skills fully translated to Spanish
+  - scholartools-sync-peers skill restructured as full 8-step user journey for non-expert setup
+  - specs/018-cli-build.md task-05 (smoke test) marked done — all tasks now complete
+  - CHANGELOG.md [Unreleased] updated with cli-build distribution and skills entries
+  - feature_list.json: cli-build added with passes: true
+pending: none from this session
+decisions:
+  - skills grouped into 4 cards (config, references, sync-peers, files); discovery merged into references
+  - skill names follow scholartools-<group> convention; name identifier kept in English across both locales
+broken: none
+next: awaiting user instruction

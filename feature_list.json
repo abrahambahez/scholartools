@@ -123,5 +123,12 @@
     "spec": "specs/014-mcp-server.md",
     "passes": false,
     "notes": "MCP support removed in v0.10.0. See specs/015-remove-mcp.md."
+  },
+  {
+    "id": "cli-build",
+    "title": "CLI build — PyInstaller standalone bundles for macOS, Linux, and Windows distribution",
+    "spec": "specs/018-cli-build.md",
+    "passes": true,
+    "notes": "All 5 tasks complete. GitHub Actions matrix build on v* tags. Three platform zips + install.sh + install.ps1 as separate release assets. Version stamped from pyproject.toml. Smoke test (task-05) verified."
   }
 ]

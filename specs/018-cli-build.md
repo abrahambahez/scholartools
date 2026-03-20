@@ -70,7 +70,7 @@ Build and release a PyInstaller-based distribution pipeline that packages the `s
   - `install.ps1`: same flow for Windows — installs to `%LOCALAPPDATA%\Programs\scht`, persists PATH via `[Environment]::SetEnvironmentVariable`, writes config to `%USERPROFILE%\.config\scholartools\config.json`
   - Scripts are NOT bundled inside platform zips — uploaded as standalone release assets from the Linux CI runner
 
-- [ ] task-05: smoke test the release pipeline (blocks: task-04)
+- [x] task-05: smoke test the release pipeline (blocks: task-04)
   - Tag a test version locally (e.g., `v0.1.0-test`)
   - Verify GitHub Actions builds all four platforms
   - Download and unzip each bundle; run `./scht --version` and `./scht refs list`

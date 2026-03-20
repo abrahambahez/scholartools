@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- PyInstaller standalone distribution bundles for macOS arm64, Linux x86_64, and Windows x86_64 — triggered by `v*` tags via GitHub Actions matrix build
+- `install.sh` and `install.ps1` standalone install scripts published as separate release assets — download the correct platform zip, set PATH, and create an initial `config.json` via interactive prompts
+- `scht --version` reports the version string stamped from `pyproject.toml` at build time
+- Agent skill reference cards in `skills/en/` and `skills/es/` (config, references, sync-peers, files)
+
 ### Removed
 - MCP server (`scht-mcp`), `mcp` optional dependency group, `.mcpb` bundle artifacts, and `docs/manuals/claude-desktop-setup.md` — MCP integration produced a brittle test surface with no viable researcher workflow; the CLI (`scht`) remains the primary interface
 
