@@ -1141,3 +1141,74 @@ def test_sync_file_s3_failure_does_not_set_blob_ref(tmp_path):
     assert not result.ok
     assert records[0].get("blob_ref") is None
     assert not (tmp_path / "change_log").exists()
+
+
+# --- unsync_file tests ---
+
+
+def test_unsync_file_not_synced_errors(tmp_path):
+    from scholartools.services.sync import unsync_file
+
+    ctx, _ = make_ctx(tmp_path, records=[{"id": "s2024", "type": "article"}])
+    result = asyncio.run(unsync_file(ctx, "s2024"))
+    assert not result.ok
+    assert result.error == "file is not synced"
+
+
+def test_unsync_file_not_found_errors(tmp_path):
+    from scholartools.services.sync import unsync_file
+
+    ctx, _ = make_ctx(tmp_path, records=[])
+    result = asyncio.run(unsync_file(ctx, "nope"))
+    assert not result.ok
+    assert "not found" in result.error
+
+
+def test_unsync_file_happy_path_clears_blob_ref(tmp_path):
+    from scholartools.services.sync import unsync_file
+
+    ctx, records = make_ctx(
+        tmp_path,
+        records=[{"id": "s2024", "type": "article", "blob_ref": "sha256:abc"}],
+    )
+    result = asyncio.run(unsync_file(ctx, "s2024"))
+    assert result.ok
+    assert "blob_ref" not in records[0]
+    assert records[0]["_field_timestamps"]["blob_ref"]
+    log_files = list((tmp_path / "change_log").glob("*.json"))
+    assert len(log_files) == 1
+    entry = json.loads(log_files[0].read_text())
+    assert entry["op"] == "unlink_file"
+    assert entry["citekey"] == "s2024"
+    assert entry["blob_ref"] is None
+
+
+def test_unsync_file_preserves_file(tmp_path):
+    from scholartools.services.sync import unsync_file
+
+    files_dir = tmp_path / "files"
+    files_dir.mkdir()
+    pdf = files_dir / "s2024.pdf"
+    pdf.write_bytes(b"data")
+    file_rec = {
+        "path": str(pdf),
+        "mime_type": "application/pdf",
+        "size_bytes": 4,
+        "added_at": "2026-01-01T00:00:00+00:00",
+    }
+    ctx, records = make_ctx(
+        tmp_path,
+        records=[
+            {
+                "id": "s2024",
+                "type": "article",
+                "blob_ref": "sha256:abc",
+                "_file": file_rec,
+            }
+        ],
+    )
+    result = asyncio.run(unsync_file(ctx, "s2024"))
+    assert result.ok
+    assert "blob_ref" not in records[0]
+    assert records[0].get("_file") == file_rec
+    assert pdf.exists()

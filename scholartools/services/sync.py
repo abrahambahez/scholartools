@@ -653,6 +653,49 @@ async def get_file(ctx: LibraryCtx, citekey: str) -> Path | None:
     return p if p.exists() else None
 
 
+async def unsync_file(ctx: LibraryCtx, citekey: str) -> Result:
+    if not ctx.data_dir:
+        return Result(ok=False, error="data_dir not configured")
+
+    records = await ctx.read_all()
+    record = next((r for r in records if r.get("id") == citekey), None)
+    if record is None:
+        return Result(ok=False, error=f"not found: {citekey}")
+
+    if not record.get("blob_ref"):
+        return Result(ok=False, error="file is not synced")
+
+    data_dir = Path(ctx.data_dir)
+    ts = hlc_service.now(ctx.peer_id)
+    privkey = _load_privkey(ctx)
+
+    entry_dict = {
+        "op": "unlink_file",
+        "uid": record.get("uid") or citekey,
+        "uid_confidence": record.get("uid_confidence") or "",
+        "citekey": citekey,
+        "data": {},
+        "blob_ref": None,
+        "peer_id": ctx.peer_id,
+        "device_id": ctx.device_id,
+        "timestamp_hlc": ts,
+        "signature": "",
+    }
+    if privkey is not None:
+        entry_dict["signature"] = _sign_entry(entry_dict, privkey)
+
+    entry = ChangeLogEntry.model_validate(entry_dict)
+    _write_change_log_entry(data_dir, entry)
+
+    record.pop("blob_ref")
+    ft = dict(record.get("_field_timestamps", {}))
+    ft["blob_ref"] = ts
+    record["_field_timestamps"] = ft
+    await ctx.write_all(records)
+
+    return Result(ok=True)
+
+
 async def prefetch_blobs(
     ctx: LibraryCtx, citekeys: list[str] | None = None
 ) -> PrefetchResult:
