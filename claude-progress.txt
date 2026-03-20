@@ -343,3 +343,14 @@ decisions:
   - skill names follow scholartools-<group> convention; name identifier kept in English across both locales
 broken: none
 next: awaiting user instruction
+
+--- [2026-03-19] session 18 (continued) ---
+completed:
+  - README config section rewritten as fully annotated jsonc full-config example
+  - CHANGELOG [Unreleased] promoted to [0.10.0] - 2026-03-19
+  - pyproject.toml bumped to 0.10.0
+  - Tagged v0.10.0
+pending: none
+decisions: none
+broken: none
+next: awaiting user instruction

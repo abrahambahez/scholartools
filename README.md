@@ -30,46 +30,86 @@ bash <(curl -fsSL https://raw.githubusercontent.com/abrahambahez/scholartools/ma
 
 ## config
 
-Config is loaded from `~/.config/scholartools/config.json`. If the file doesn't exist it is created automatically with defaults.
+Config is loaded from `~/.config/scholartools/config.json` (Windows: `C:\Users\<user>\.config\scholartools\config.json`). Created automatically with defaults on first use.
 
-```json
+```jsonc
 {
   "backend": "local",
+
+  // Where library.json, files/, and staging/ are stored.
+  // All paths are derived from this — it's the only path you ever need to set.
   "local": {
     "library_dir": "~/.local/share/scholartools"
   },
+
   "apis": {
+    // Recommended: identifies your requests to Crossref and OpenAlex,
+    // unlocking polite-pool rate limits on both sources.
     "email": "you@example.com",
+
+    // All six sources are enabled by default.
+    // Set "enabled": false on any source you want to disable.
+    // google_books also requires the GBOOKS_API_KEY env var to activate.
     "sources": [
-      { "name": "crossref", "enabled": true },
+      { "name": "crossref",         "enabled": true },
       { "name": "semantic_scholar", "enabled": true },
-      { "name": "arxiv", "enabled": true },
-      { "name": "openalex", "enabled": true },
-      { "name": "doaj", "enabled": true },
-      { "name": "google_books", "enabled": true }
+      { "name": "arxiv",            "enabled": true },
+      { "name": "openalex",         "enabled": true },
+      { "name": "doaj",             "enabled": true },
+      { "name": "google_books",     "enabled": true }
     ]
   },
+
+  // Optional. Model used for PDF extraction via Claude vision
+  // (fallback when pdfplumber cannot extract selectable text).
+  // Requires ANTHROPIC_API_KEY. Omit this block to use the default.
   "llm": {
     "model": "claude-sonnet-4-6"
+  },
+
+  // Optional. Controls how citekeys are generated at merge time.
+  // Omit this block to use the defaults shown here.
+  "citekey": {
+    // Tokens: {author[N]} = first N surnames, {year} = 4-digit year.
+    "pattern": "{author[2]}{year}",
+    // Joins multiple author surnames (e.g. "smith_jones2021").
+    "separator": "_",
+    // Appended when authors exceed the N in {author[N]}.
+    "etal": "_etal",
+    // How to disambiguate identical keys: "letters" (a/b/c)
+    // or "title[1-9]" (first N words of the title).
+    "disambiguation_suffix": "letters"
+  },
+
+  // Optional. Required when sync is present — identifies this device.
+  // peer_id = who you are (e.g. your name), device_id = this machine.
+  "peer": {
+    "peer_id": "alice",
+    "device_id": "laptop"
+  },
+
+  // Optional. Enables S3-backed distributed sync across devices.
+  // Works with AWS S3, Cloudflare R2, Backblaze B2, or MinIO.
+  // endpoint: null targets AWS S3; set a URL for any other provider.
+  // Omit this block entirely for local-only operation.
+  "sync": {
+    "bucket": "my-scholartools-bucket",
+    "access_key": "YOUR_ACCESS_KEY",
+    "secret_key": "YOUR_SECRET_KEY",
+    "endpoint": null
   }
 }
 ```
 
-When `sync` is configured, a `peer` block is also required (see [peer identity & distributed sync](#peer-identity--distributed-sync) below).
-
-`library_dir` controls where `library.json`, `files/`, and `staging/` are stored. All other paths are derived from it.
-
-Set `apis.email` to identify your requests to Crossref and OpenAlex (recommended — unlocks polite-pool rate limits).
-
 API keys are never stored in config — set them as environment variables:
 
-| Variable | Required | Purpose |
-|---|---|---|
-| `ANTHROPIC_API_KEY` | No | PDF metadata extraction via Claude vision (fallback when pdfplumber fails) |
-| `GBOOKS_API_KEY` | No | Enables Google Books as a search/fetch source |
-| `SEMANTIC_SCHOLAR_API_KEY` | No | Raises Semantic Scholar rate limits |
+| Variable | Purpose |
+|----------|---------|
+| `ANTHROPIC_API_KEY` | PDF metadata extraction via Claude vision (fallback when pdfplumber fails) |
+| `GBOOKS_API_KEY` | Enables Google Books as a search/fetch source |
+| `SEMANTIC_SCHOLAR_API_KEY` | Raises Semantic Scholar rate limits |
 
-Without these keys the features degrade gracefully: LLM extraction is skipped, Google Books source is disabled.
+Without these keys features degrade gracefully: LLM extraction is skipped, Google Books is disabled.
 
 ## CLI
 
@@ -187,24 +227,7 @@ scholartools.peer_revoke_device(peer_id="bob", device_id="old-tablet")
 scholartools.peer_revoke(peer_id="bob")   # revoke entire peer
 ```
 
-To enable sync, add `peer` and `sync` blocks to `config.json`:
-
-```json
-{
-  "peer": {
-    "peer_id": "alice",
-    "device_id": "laptop"
-  },
-  "sync": {
-    "bucket": "my-library-sync",
-    "access_key": "AKIAIOSFODNN7EXAMPLE",
-    "secret_key": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
-    "endpoint": "https://s3.example.com"
-  }
-}
-```
-
-`peer` is required when `sync` is present. Omitting `endpoint` targets AWS S3. Without a `sync` block the library runs local-only and the functions below are no-ops.
+To enable sync, add `peer` and `sync` blocks to `config.json` (see [config](#config) above). Without a `sync` block the library runs local-only and the functions below are no-ops.
 
 ```python
 # push local change log entries to remote backend
