@@ -8,20 +8,32 @@ from scholartools.cli._fmt import exit_result
 from scholartools.models import Result
 
 
-def _link(args: argparse.Namespace) -> None:
+def _attach(args: argparse.Namespace) -> None:
     try:
-        result = scholartools.link_file(args.citekey, args.path)
+        result = scholartools.attach_file(args.citekey, args.path)
     except Exception as e:
         exit_result(Result(ok=False, error=str(e)), plain=False)
     exit_result(result, args.plain)
 
 
-def _unlink(args: argparse.Namespace) -> None:
+def _detach(args: argparse.Namespace) -> None:
     try:
-        result = scholartools.unlink_file(args.citekey)
+        result = scholartools.detach_file(args.citekey)
     except Exception as e:
         exit_result(Result(ok=False, error=str(e)), plain=False)
     exit_result(result, args.plain)
+
+
+def _reindex(args: argparse.Namespace) -> None:
+    try:
+        r = scholartools.reindex_files()
+    except Exception as e:
+        print(json.dumps({"ok": False, "data": None, "error": str(e)}))
+        sys.exit(1)
+    print(
+        f"Repaired: {r.repaired}, already ok: {r.already_ok}, not found: {r.not_found}"
+    )
+    sys.exit(0)
 
 
 def _get(args: argparse.Namespace) -> None:
@@ -76,14 +88,16 @@ def _prefetch(args: argparse.Namespace) -> None:
 def register(sub: argparse.ArgumentParser) -> None:
     cmds = sub.add_subparsers(dest="files_cmd")
 
-    p_link = cmds.add_parser("link")
-    p_link.add_argument("citekey")
-    p_link.add_argument("path")
-    p_link.set_defaults(func=_link)
+    p_attach = cmds.add_parser("attach")
+    p_attach.add_argument("citekey")
+    p_attach.add_argument("path")
+    p_attach.set_defaults(func=_attach)
 
-    p_unlink = cmds.add_parser("unlink")
-    p_unlink.add_argument("citekey")
-    p_unlink.set_defaults(func=_unlink)
+    p_detach = cmds.add_parser("detach")
+    p_detach.add_argument("citekey")
+    p_detach.set_defaults(func=_detach)
+
+    cmds.add_parser("reindex").set_defaults(func=_reindex)
 
     p_get = cmds.add_parser("get")
     p_get.add_argument("citekey")

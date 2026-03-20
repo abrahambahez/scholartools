@@ -63,6 +63,22 @@ def _restore(args: argparse.Namespace) -> None:
     exit_result(result, args.plain)
 
 
+def _sync_file(args: argparse.Namespace) -> None:
+    try:
+        result = scholartools.sync_file(args.citekey)
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
+    exit_result(result, args.plain)
+
+
+def _unsync_file(args: argparse.Namespace) -> None:
+    try:
+        result = scholartools.unsync_file(args.citekey)
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
+    exit_result(result, args.plain)
+
+
 def register(sub: argparse.ArgumentParser) -> None:
     cmds = sub.add_subparsers(dest="sync_cmd")
 
@@ -80,3 +96,11 @@ def register(sub: argparse.ArgumentParser) -> None:
     p_restore = cmds.add_parser("restore")
     p_restore.add_argument("citekey")
     p_restore.set_defaults(func=_restore)
+
+    p_sync_file = cmds.add_parser("sync-file")
+    p_sync_file.add_argument("citekey")
+    p_sync_file.set_defaults(func=_sync_file)
+
+    p_unsync_file = cmds.add_parser("unsync-file")
+    p_unsync_file.add_argument("citekey")
+    p_unsync_file.set_defaults(func=_unsync_file)
