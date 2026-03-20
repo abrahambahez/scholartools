@@ -1,7 +1,13 @@
 from pathlib import Path
 
 from scholartools.models import LibraryCtx
-from scholartools.services.files import link_file, list_files, move_file, unlink_file
+from scholartools.services.files import (
+    _resolve_file_path,
+    link_file,
+    list_files,
+    move_file,
+    unlink_file,
+)
 
 
 def make_ctx(tmp_path, initial=None):
@@ -135,8 +141,8 @@ async def test_move_file(tmp_path):
     result = await move_file("x", "x_renamed.pdf", ctx)
 
     assert result.error is None
-    # move_file updates the stored path to an absolute path
-    assert store[0]["_file"]["path"].endswith("x_renamed.pdf")
+    assert store[0]["_file"]["path"] == "x_renamed.pdf"
+    assert result.new_path.endswith("x_renamed.pdf")
 
 
 async def test_list_files_empty(tmp_path):
@@ -177,3 +183,25 @@ async def test_list_files(tmp_path):
     assert result.total == 2
     citekeys = {f.citekey for f in result.files}
     assert citekeys == {"a", "c"}
+
+
+def test_resolve_file_path_relative(tmp_path):
+    ctx, _, files_dir = make_ctx(tmp_path)
+    resolved = _resolve_file_path(ctx, "paper.pdf")
+    assert resolved == files_dir / "paper.pdf"
+
+
+def test_resolve_file_path_absolute_exists(tmp_path):
+    ctx, _, files_dir = make_ctx(tmp_path)
+    existing = tmp_path / "other" / "paper.pdf"
+    existing.parent.mkdir(parents=True)
+    existing.write_bytes(b"data")
+    resolved = _resolve_file_path(ctx, str(existing))
+    assert resolved == existing
+
+
+def test_resolve_file_path_absolute_missing_falls_back(tmp_path):
+    ctx, _, files_dir = make_ctx(tmp_path)
+    legacy = Path("/old/library/files/paper.pdf")
+    resolved = _resolve_file_path(ctx, str(legacy))
+    assert resolved == files_dir / "paper.pdf"

@@ -55,19 +55,24 @@ async def unlink_file(citekey: str, ctx: LibraryCtx) -> UnlinkResult:
     return UnlinkResult(unlinked=False, error=f"not found: {citekey}")
 
 
+def _resolve_file_path(ctx: LibraryCtx, raw_path: str) -> Path:
+    p = Path(raw_path)
+    if not p.is_absolute():
+        return Path(ctx.files_dir) / raw_path
+    if p.exists():
+        return p
+    return Path(ctx.files_dir) / p.name
+
+
 async def move_file(citekey: str, dest_name: str, ctx: LibraryCtx) -> MoveResult:
-    """Actualiza el path registrado en _file
-    (el rename físico lo hace rename_citekey.py)."""
     records = await ctx.read_all()
     for r in records:
         if r.get("id") == citekey:
             if not r.get("_file"):
                 return MoveResult(error="no file linked")
-            files_dir = Path(ctx.files_dir)
-            new_path = str((files_dir / dest_name).resolve())
-            r["_file"]["path"] = new_path
+            r["_file"]["path"] = dest_name
             await ctx.write_all(records)
-            return MoveResult(new_path=new_path)
+            return MoveResult(new_path=str(Path(ctx.files_dir) / dest_name))
 
     return MoveResult(error=f"not found: {citekey}")
 
@@ -76,7 +81,12 @@ async def list_files(ctx: LibraryCtx, page: int = 1) -> FilesListResult:
     records = await ctx.read_all()
     rows = sorted(
         [
-            FileRow(citekey=r["id"], **r["_file"])
+            FileRow(
+                citekey=r["id"],
+                path=str(_resolve_file_path(ctx, r["_file"]["path"])),
+                mime_type=r["_file"]["mime_type"],
+                size_bytes=r["_file"]["size_bytes"],
+            )
             for r in records
             if r.get("_file") and r.get("id")
         ],
