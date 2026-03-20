@@ -65,7 +65,7 @@
     "title": "Blob sync — content-addressed file distribution over S3",
     "spec": "specs/009-blob-sync.md",
     "passes": true,
-    "notes": "399 unit + integration tests passing. sha256 content-addressed blobs, link_file/unlink_file ops in change log, lazy get_file with cache, prefetch_blobs, pull LWW for blob_ref, upload_bytes for .meta sidecars. No regressions."
+    "notes": "465 unit + integration tests passing. Superseded by 021-file-management-refactor: sync_file/unsync_file replace link_file/unlink_file, blob cache files include extension, get_file resolves relative paths."
   },
   {
     "id": "role-logic",
@@ -108,7 +108,15 @@
     "id": "local-file-progressive-enhancement",
     "title": "Local-first file ops — progressive enhancement stacking blob sync on local copy",
     "spec": "specs/011-local-file-progressive-enhancement.md",
-    "passes": false
+    "passes": true,
+    "notes": "Superseded by 021-file-management-refactor (v0.11.0). attach_file/detach_file/sync_file/unsync_file/reindex_files replace link_file/unlink_file. FileRecord.path stores filename only. 465 tests passing."
+  },
+  {
+    "id": "file-management-refactor",
+    "title": "File management refactor — explicit local/sync layers, relative paths, blob cache extensions",
+    "spec": "specs/021-file-management-refactor.md",
+    "passes": true,
+    "notes": "All 12 tasks complete. 465 unit + 5 integration tests passing. Four new public functions (attach_file, detach_file, sync_file, unsync_file), reindex_files repair command, FileRecord.path relative-only, blob cache {sha256}{ext} naming."
   },
   {
     "id": "cli",

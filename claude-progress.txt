@@ -354,3 +354,31 @@ pending: none
 decisions: none
 broken: none
 next: awaiting user instruction
+
+--- [2026-03-20] session 19 ---
+completed:
+  - specs/021-file-management-refactor.md — all 12 tasks implemented and reviewed
+  - task-01: blob_cache_path ext param
+  - task-02: blob cache extension in get_file and prefetch_blobs (fetch .meta sidecar, evict legacy no-ext)
+  - task-03: _resolve_file_path helper, move_file and list_files store filename only
+  - task-04: attach_file (copy to files_dir, register filename only, no S3)
+  - task-05: detach_file (delete local, clear _file, block if blob_ref set)
+  - task-06: sync_file (hash, S3 upload, change log, set blob_ref; S3 failure is transactional)
+  - task-07: unsync_file (clear blob_ref, write unlink_file log, leave _file intact)
+  - task-08: reindex_files + ReindexResult model (stem-map repair for stale absolute paths)
+  - task-09: public API wired, link_file/unlink_file removed from all layers
+  - task-10: CLI attach/detach/reindex/sync-file/unsync-file
+  - task-11: 5 integration tests (local, sync, guard x2, repair workflows)
+  - task-12: full suite green — 465 passed, 30 skipped, 0 lint errors
+  - CHANGELOG.md [0.11.0] added
+  - README.md CLI and Python API examples updated
+  - feature_list.json: blob-sync notes updated, local-file-progressive-enhancement marked passes:true, file-management-refactor added
+  - pyproject.toml bumped to 0.11.0
+  - Tagged v0.11.0
+pending: none
+decisions:
+  - FileRecord.path is filename-only; files_dir is always library_dir/files (computed, not configurable)
+  - detach_file blocks on blob_ref — callers must unsync_file first (no aliases, intentional)
+  - blob cache eviction of legacy no-extension files happens lazily on next get_file
+broken: none
+next: awaiting user instruction

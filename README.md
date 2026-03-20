@@ -131,11 +131,12 @@ scht fetch 10.48550/arXiv.1706.03762
 scht extract papers/vaswani2017.pdf
 
 # file archive
-scht files link vaswani2017 papers/vaswani2017.pdf
-scht files unlink vaswani2017
+scht files attach vaswani2017 papers/vaswani2017.pdf
+scht files detach vaswani2017
 scht files get vaswani2017
 scht files move vaswani2017 attention.pdf
 scht files list
+scht files reindex
 
 # staging
 scht staging stage '{"title":"..."}' --file papers/draft.pdf
@@ -151,6 +152,8 @@ scht sync snapshot
 scht sync conflicts
 scht sync resolve <uid> title "Corrected Title"
 scht sync restore vaswani2017
+scht sync sync-file vaswani2017
+scht sync unsync-file vaswani2017
 
 # peers
 scht peers init alice laptop
@@ -192,10 +195,14 @@ scholartools.filter_references(ref_type="book", has_file=True)  # type and file 
 scholartools.filter_references(query="draft", staging=True)     # search staging store instead
 
 # file archive
-scholartools.link_file("vaswani2017", "papers/vaswani2017.pdf")
-scholartools.unlink_file("vaswani2017")
+scholartools.attach_file("vaswani2017", "papers/vaswani2017.pdf")
+scholartools.sync_file("vaswani2017")            # upload to S3
+scholartools.get_file("vaswani2017")             # resolve local or cached path
+scholartools.unsync_file("vaswani2017")          # clear blob_ref, keep local
+scholartools.detach_file("vaswani2017")          # remove local copy
 scholartools.move_file("vaswani2017", "attention.pdf")
 scholartools.list_files(page=1)
+scholartools.reindex_files()                     # repair stale paths after library move
 
 # staging — review before committing to the library
 scholartools.stage_reference({"title": "..."}, file_path="papers/draft.pdf")

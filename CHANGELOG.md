@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-03-20
+
+### Added
+- `attach_file(citekey, path)` — copies file to `files/` and registers filename-only path; no S3 side effects
+- `detach_file(citekey)` — deletes local copy and clears `_file`; blocked if `blob_ref` is set
+- `sync_file(citekey)` — uploads attached file to S3, writes `link_file` change log entry, sets `blob_ref`
+- `unsync_file(citekey)` — clears `blob_ref` and writes `unlink_file` change log entry; leaves local file intact
+- `reindex_files()` → `ReindexResult(repaired, already_ok, not_found)` — repairs stale absolute `_file.path` values after a library folder move
+- CLI commands `scht files attach`, `scht files detach`, `scht files reindex`, `scht sync sync-file`, `scht sync unsync-file`
+- Blob cache files now include the original extension (`{sha256}.pdf`) — fetched from `.meta` sidecar on download; legacy no-extension cache files are evicted and re-downloaded on next access
+
+### Changed
+- `FileRecord.path` now stores only the filename (`graeber2017.pdf`), never a full path — `files/` is always `library_dir/files/`; existing absolute paths are resolved via fallback logic in `get_file` and `list_files`
+
+### Removed
+- `link_file` and `unlink_file` removed from public API, service modules, and CLI — replaced by the four explicit functions above
+
 ## [0.10.0] - 2026-03-19
 
 ### Added
