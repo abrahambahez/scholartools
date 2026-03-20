@@ -5,40 +5,34 @@ description: scholartools file management — link PDFs or EPUBs to library refe
 
 Files are linked to **library** references (not staged ones). Each reference holds at most one file.
 
-## Functions
+## Commands
 
-```python
-link_file(citekey: str, file_path: str) -> LinkResult
-# Copies file_path into the archive and links it to the reference.
-# LinkResult: citekey: str | None, file_record: FileRecord | None, error: str | None
+```sh
+scht files link <citekey> <path>
+# Copies <path> into the archive and links it to the reference.
 
-unlink_file(citekey: str) -> UnlinkResult
-# Removes the archive copy and clears the file link on the reference.
-# UnlinkResult: unlinked: bool, error: str | None
+scht files unlink <citekey>
+# Removes the archive copy and clears the file link.
 
-get_file(citekey: str) -> bytes | None
-# Returns file bytes. Fetches from S3 if not cached locally (when blob sync is active).
+scht files get <citekey>
+# Returns file bytes (fetches from S3 if not cached locally when blob sync is active).
 
-prefetch_blobs(citekeys: list[str] | None = None) -> PrefetchResult
-# Downloads blobs from S3 for the given citekeys (all if None).
-# PrefetchResult: fetched: int, already_cached: int, errors: list[str]
-
-move_file(citekey: str, dest_name: str) -> MoveResult
+scht files move <citekey> <dest_name>
 # Renames the archived file. dest_name is filename only, no path.
-# MoveResult: new_path: str | None, error: str | None
 
-list_files(page: int = 1) -> FilesListResult
-# FilesListResult: files: list[FileRow], total: int, page: int, pages: int
+scht files list [--page N]
+
+scht files prefetch [--citekeys key1,key2,...]
+# Downloads blobs from S3 for given citekeys (all if omitted).
 ```
 
 ## Key model fields
 
-**FileRow**: `citekey, path, mime_type, size_bytes`
+**FileRow** (list results): `citekey, path, mime_type, size_bytes`
 
 **FileRecord** (on Reference as `_file`): `path, mime_type, size_bytes, added_at`
 
 ## Notes
 
-- To attach a file at intake time: `stage_reference(ref, file_path=...)` — `merge` moves it to the archive.
-- Always use `get_file` to read file bytes; do not read `path` directly when blob sync is active.
-- Call `prefetch_blobs` before bulk processing to avoid repeated S3 round-trips.
+- To attach a file at intake time: `scht staging stage '<json>' --file <path>` — `merge` moves it to the archive.
+- Run `scht files prefetch` before bulk processing to avoid repeated S3 round-trips.

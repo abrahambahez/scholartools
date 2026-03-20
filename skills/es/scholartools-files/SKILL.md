@@ -5,40 +5,34 @@ description: gestión de archivos en scholartools — vincular PDFs o EPUBs a re
 
 Los archivos se vinculan a referencias de la **biblioteca** (no a las que están en staging). Cada referencia puede tener como máximo un archivo.
 
-## Funciones
+## Comandos
 
-```python
-link_file(citekey: str, file_path: str) -> LinkResult
-# Copia file_path al archivo y lo vincula a la referencia.
-# LinkResult: citekey: str | None, file_record: FileRecord | None, error: str | None
+```sh
+scht files link <citekey> <ruta>
+# Copia <ruta> al archivo y lo vincula a la referencia.
 
-unlink_file(citekey: str) -> UnlinkResult
+scht files unlink <citekey>
 # Elimina la copia del archivo y limpia el vínculo en la referencia.
-# UnlinkResult: unlinked: bool, error: str | None
 
-get_file(citekey: str) -> bytes | None
+scht files get <citekey>
 # Devuelve los bytes del archivo. Si blob sync está activo y no está en caché local, lo descarga de S3.
 
-prefetch_blobs(citekeys: list[str] | None = None) -> PrefetchResult
-# Descarga blobs desde S3 para los citekeys dados (todos si es None).
-# PrefetchResult: fetched: int, already_cached: int, errors: list[str]
+scht files move <citekey> <nombre_destino>
+# Renombra el archivo almacenado. nombre_destino es solo el nombre de archivo, sin ruta.
 
-move_file(citekey: str, dest_name: str) -> MoveResult
-# Renombra el archivo almacenado. dest_name es solo el nombre de archivo, sin ruta.
-# MoveResult: new_path: str | None, error: str | None
+scht files list [--page N]
 
-list_files(page: int = 1) -> FilesListResult
-# FilesListResult: files: list[FileRow], total: int, page: int, pages: int
+scht files prefetch [--citekeys clave1,clave2,...]
+# Descarga blobs desde S3 para los citekeys dados (todos si se omite).
 ```
 
 ## Campos clave de los modelos
 
-**FileRow**: `citekey, path, mime_type, size_bytes`
+**FileRow** (resultados de list): `citekey, path, mime_type, size_bytes`
 
 **FileRecord** (en Reference como `_file`): `path, mime_type, size_bytes, added_at`
 
 ## Notas
 
-- Para adjuntar un archivo al ingresar una referencia: `stage_reference(ref, file_path=...)` — `merge` lo mueve al archivo definitivo.
-- Usa siempre `get_file` para leer bytes; no leas `path` directamente si blob sync está activo.
-- Llama a `prefetch_blobs` antes de procesar en masa para evitar múltiples viajes a S3.
+- Para adjuntar un archivo al ingresar una referencia: `scht staging stage '<json>' --file <ruta>` — `merge` lo mueve al archivo definitivo.
+- Ejecuta `scht files prefetch` antes de procesar en masa para evitar múltiples viajes a S3.

@@ -7,74 +7,56 @@ description: scholartools reference management — discover references from exte
 
 - **Staging**: exploration scratchpad. References live here until promoted.
 - **Library**: production store. Every record has a citekey assigned at merge.
-- **Typical flow**: discover/fetch/extract → `stage_reference` → review → `merge`
+- **Typical flow**: discover/fetch/extract → `scht staging stage` → review → `scht staging merge`
 
 ## Discovery
 
-```python
-discover_references(query: str, sources: list[str] | None = None, limit: int = 10) -> SearchResult
-# SearchResult: references: list[Reference], sources_queried: list[str], total_found: int, errors: list[str]
-# sources: subset of ["crossref","semantic_scholar","arxiv","openalex","doaj","google_books"]
+```sh
+scht discover "<query>" [--sources crossref,semantic_scholar,...] [--limit N]
+# sources: crossref, semantic_scholar, arxiv, openalex, doaj, google_books
 
-fetch_reference(identifier: str) -> FetchResult
+scht fetch <identifier>
 # identifier: DOI, arXiv ID, or ISBN
-# FetchResult: reference: Reference | None, source: str | None, error: str | None
 
-extract_from_file(file_path: str) -> ExtractResult
-# ExtractResult: reference: Reference | None, method_used: "pdfplumber"|"llm"|None, confidence: float | None, error: str | None
-# Requires ANTHROPIC_API_KEY for llm fallback on scanned PDFs
+scht extract <file_path>
+# Requires ANTHROPIC_API_KEY for LLM fallback on scanned PDFs
 ```
 
 ## Staging
 
-```python
-stage_reference(ref: dict, file_path: str | None = None) -> StageResult
-# StageResult: citekey: str | None, error: str | None
+```sh
+scht staging stage '<json>' [--file <path>]
+echo '<json>' | scht staging stage              # from stdin
 
-list_staged(page: int = 1) -> ListStagedResult
-# ListStagedResult: references: list[ReferenceRow], total: int, page: int, pages: int
+scht staging list-staged [--page N]
 
-delete_staged(citekey: str) -> DeleteStagedResult
-# DeleteStagedResult: deleted: bool, error: str | None
+scht staging delete-staged <citekey>
 
-merge(omit: list[str] | None = None, allow_semantic: bool = False) -> MergeResult
-# Promotes all staged records: validates schema, deduplicates, archives files, assigns citekeys
-# omit: staged citekeys to skip this run
-# allow_semantic: also promote records with uid_confidence=="semantic" (default: authoritative only)
-# MergeResult: promoted: list[str], errors: dict[str, str], skipped: list[str]
+scht staging merge [--omit key1,key2,...] [--allow-semantic]
+# --allow-semantic: also promote records with uid_confidence=="semantic"
 ```
 
 ## Library CRUD
 
-```python
-add_reference(ref: dict) -> AddResult
-# AddResult: citekey: str | None, error: str | None
+```sh
+scht refs add '<json>'
+echo '<json>' | scht refs add                   # from stdin
 
-get_reference(citekey: str | None = None, uid: str | None = None) -> GetResult
-# GetResult: reference: Reference | None, error: str | None
+scht refs get <citekey> [--uid <uid>]
 
-update_reference(citekey: str, fields: dict) -> UpdateResult
-# fields: partial dict of Reference fields to overwrite
-# UpdateResult: citekey: str | None, error: str | None
+scht refs update <citekey> '<json>'
+echo '<json>' | scht refs update <citekey>      # from stdin
 
-rename_reference(old_key: str, new_key: str) -> RenameResult
-# RenameResult: old_key, new_key, error
+scht refs rename <old_key> <new_key>
 
-delete_reference(citekey: str) -> DeleteResult
-# DeleteResult: deleted: bool, error: str | None
+scht refs delete <citekey>
 
-list_references(page: int = 1) -> ListResult
-# ListResult: references: list[ReferenceRow], total: int, page: int, pages: int
+scht refs list [--page N]
 
-filter_references(
-    query: str | None = None,    # full-text across title/abstract
-    author: str | None = None,   # partial surname match
-    year: int | None = None,
-    ref_type: str | None = None, # CSL type: "article-journal", "book", etc.
-    has_file: bool | None = None,
-    staging: bool = False,       # True to filter staged records instead
-    page: int = 1,
-) -> ListResult
+scht refs filter [--query "<text>"] [--author "<surname>"] [--year YYYY] \
+                 [--type <csl-type>] [--has-file] [--staging] [--page N]
+# --type examples: article-journal, book, chapter
+# --staging: filter staged records instead of library
 ```
 
 ## Key model fields

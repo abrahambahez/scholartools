@@ -1,6 +1,6 @@
 ---
 name: scholartools-config
-description: scholartools configuration reference — file location, settings structure, env vars, citekey pattern tokens, and computed data paths. Use this whenever the user asks how to set up scholartools, change any configuration option, enable or disable an API source (Crossref, Google Books, Semantic Scholar, etc.), configure LLM PDF extraction, customize citekey generation, or when any scholartools function fails due to a missing or misconfigured setting.
+description: scholartools configuration reference — file location, settings structure, env vars, citekey pattern tokens, and computed data paths. Use this whenever the user asks how to set up scholartools, change any configuration option, enable or disable an API source (Crossref, Google Books, Semantic Scholar, etc.), configure LLM PDF extraction, customize citekey generation, or when any scholartools command fails due to a missing or misconfigured setting.
 ---
 
 Config file path:
@@ -10,7 +10,7 @@ Config file path:
 | Linux / macOS | `~/.config/scholartools/config.json` |
 | Windows | `C:\Users\<user>\.config\scholartools\config.json` |
 
-Auto-created with defaults on first use. Edit manually; call `reset()` after changes at runtime.
+Auto-created with defaults on first use. Edit manually; changes take effect on the next `scht` command.
 
 ## Settings structure
 
@@ -54,11 +54,10 @@ Auto-created with defaults on first use. Edit manually; call `reset()` after cha
 - `etal` — appended when authors > N
 - `disambiguation_suffix`: `"letters"` (a/b/c) or `"title[1-9]"` (first N title words)
 
-## Function
+## Global flag
 
-```python
-reset() -> None
-# Clears cached config and ctx. Required after editing config.json at runtime.
+```
+scht --plain <command>   # human-readable table output instead of JSON
 ```
 
 ## Computed paths (relative to library_dir)

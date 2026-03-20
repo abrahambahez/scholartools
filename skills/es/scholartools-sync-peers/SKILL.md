@@ -54,23 +54,19 @@ Agrega un bloque `sync` y un bloque `peer`. Elige cualquier nombre para `peer_id
 }
 ```
 
-Luego recarga:
-
-```python
-reset()
-```
+Los cambios se aplican en el siguiente comando `scht`.
 
 ---
 
 ## 3. Inicializar la identidad de este dispositivo
 
-Ejecuta una sola vez por dispositivo. Genera un par de claves Ed25519 para que tus cambios puedan ser firmados y verificados por otros dispositivos.
+Ejecuta una sola vez por dispositivo. Genera un par de claves Ed25519 para que tus cambios puedan ser firmados y verificados.
 
-```python
-result = peer_init("alice", "laptop")
-# result.identity -> PeerIdentity(peer_id, device_id, public_key)
+```sh
+scht peers init alice laptop
+# imprime el JSON de PeerIdentity: {peer_id, device_id, public_key}
 
-peer_register_self()
+scht peers register-self
 # Escribe tu clave pública en el registro local de peers.
 ```
 
@@ -82,8 +78,8 @@ peer_register_self()
 
 Sube una copia completa de tu biblioteca al bucket. Los demás dispositivos se inicializarán desde aquí.
 
-```python
-create_snapshot()
+```sh
+scht sync snapshot
 ```
 
 Ejecútalo una vez después de la configuración inicial y de nuevo tras importaciones masivas.
@@ -94,30 +90,28 @@ Ejecútalo una vez después de la configuración inicial y de nuevo tras importa
 
 Siempre haz pull antes de push para aplicar los cambios remotos primero.
 
-```python
-pull()   # aplica cambios remotos; devuelve applied_count, rejected_count, conflicted_count
+```sh
+scht sync pull    # aplica cambios remotos
 # ... haz ediciones locales (agregar/actualizar/eliminar referencias) ...
-push()   # sube las entradas del registro de cambios al bucket
+scht sync push    # sube las entradas del registro de cambios al bucket
 ```
 
 Después del pull, revisa los conflictos:
 
-```python
-conflicts = list_conflicts()
-# ConflictRecord: uid, field, local_value, local_timestamp_hlc,
-#                 remote_value, remote_timestamp_hlc, remote_peer_id
+```sh
+scht sync list-conflicts
+# imprime lista de ConflictRecord: uid, field, local_value, local_timestamp_hlc,
+#                                  remote_value, remote_timestamp_hlc, remote_peer_id
 
-for c in conflicts:
-    # Compara c.local_value con c.remote_value y elige el ganador:
-    resolve_conflict(c.uid, c.field, c.local_value)   # conservar local
-    # o
-    resolve_conflict(c.uid, c.field, c.remote_value)  # conservar remoto
+# Elige el ganador para cada conflicto:
+scht sync resolve-conflict <uid> <field> <valor_local>    # conservar local
+scht sync resolve-conflict <uid> <field> <valor_remoto>   # conservar remoto
 ```
 
 Para recuperar una referencia eliminada por un peer remoto:
 
-```python
-restore_reference(citekey)
+```sh
+scht sync restore <citekey>
 ```
 
 ---
@@ -132,25 +126,25 @@ Usa esto cuando quieras sincronizar la biblioteca de `alice` a una nueva máquin
    ```json
    { "peer": { "peer_id": "alice", "device_id": "desktop" } }
    ```
-2. Genera un par de claves para este dispositivo:
-   ```python
-   result = peer_init("alice", "desktop")
-   identity = result.identity   # comparte esto con el primer dispositivo
+2. Genera un par de claves y comparte el JSON de identidad con el primer dispositivo:
+   ```sh
+   scht peers init alice desktop
+   # copia el JSON de identidad impreso
    ```
 
 **En el primer dispositivo (como admin):**
 
-```python
-peer_add_device("alice", identity)
-# identity es el PeerIdentity del nuevo dispositivo: {peer_id, device_id, public_key}
-push()   # publica el registro de peer actualizado en el bucket
+```sh
+scht peers add-device alice '<json-identidad>'
+# o: echo '<json-identidad>' | scht peers add-device alice
+scht sync push    # publica el registro de peer actualizado en el bucket
 ```
 
 **De vuelta en el nuevo dispositivo:**
 
-```python
-peer_register_self()
-pull()   # inicializa la biblioteca desde el snapshot + registro de cambios
+```sh
+scht peers register-self
+scht sync pull    # inicializa la biblioteca desde el snapshot + registro de cambios
 ```
 
 ---
@@ -161,26 +155,25 @@ Usa esto para darle acceso al bucket a otra persona (`"bob"`).
 
 **Bob, en su dispositivo:**
 
-```python
-result = peer_init("bob", "bob-laptop")
-identity = result.identity   # comparte esto con alice
-peer_register_self()
+```sh
+scht peers init bob bob-laptop
+# copia el JSON de identidad impreso
+scht peers register-self
 ```
 
 **Alice (admin), en su dispositivo:**
 
-```python
-peer_register(identity)    # registra el dispositivo de bob localmente
-push()                     # publica el registro de peer de bob en el bucket
+```sh
+scht peers register '<json-identidad-bob>'
+# o: echo '<json-identidad-bob>' | scht peers register
+scht sync push    # publica el registro de peer de bob en el bucket
 ```
 
 **Bob:**
 
-```python
-pull()   # inicializa desde la biblioteca compartida
+```sh
+scht sync pull    # inicializa desde la biblioteca compartida
 ```
-
-Los dispositivos tienen rol `"contributor"` por defecto. Para hacer a Bob admin, establece `role="admin"` en el `DeviceIdentity` pasado a `peer_add_device`.
 
 ---
 
@@ -188,40 +181,38 @@ Los dispositivos tienen rol `"contributor"` por defecto. Para hacer a Bob admin,
 
 Revocar un único dispositivo (p.ej. una laptop perdida):
 
-```python
-peer_revoke_device("alice", "laptop")
-push()
+```sh
+scht peers revoke-device alice laptop
+scht sync push
 ```
 
 Revocar un peer completo (elimina todos sus dispositivos):
 
-```python
-peer_revoke("bob")
-push()
+```sh
+scht peers revoke bob
+scht sync push
 ```
 
 Los dispositivos revocados son rechazados en el pull por todos los demás peers.
 
 ---
 
-## Referencia de API
+## Referencia de CLI
 
-```python
+```sh
 # Identidad
-peer_init(peer_id: str, device_id: str) -> PeerInitResult
-peer_register_self() -> Result
-peer_register(identity: PeerIdentity) -> PeerRegisterResult
-peer_add_device(peer_id: str, device_identity: PeerIdentity) -> PeerAddDeviceResult
-peer_revoke_device(peer_id: str, device_id: str) -> PeerRevokeDeviceResult
-peer_revoke(peer_id: str) -> PeerRevokeResult
+scht peers init <peer_id> <device_id>
+scht peers register-self
+scht peers register [<identity_json>|-]
+scht peers add-device <peer_id> [<identity_json>|-]
+scht peers revoke-device <peer_id> <device_id>
+scht peers revoke <peer_id>
 
 # Sincronización
-push() -> PushResult              # entries_pushed: int, errors: list[str]
-pull() -> PullResult              # applied_count, rejected_count, conflicted_count, errors
-create_snapshot() -> None
-
-# Conflictos
-list_conflicts() -> list[ConflictRecord]
-resolve_conflict(uid: str, field: str, winning_value) -> Result
-restore_reference(citekey: str) -> Result
+scht sync push
+scht sync pull
+scht sync snapshot
+scht sync list-conflicts
+scht sync resolve-conflict <uid> <field> <valor>
+scht sync restore <citekey>
 ```
