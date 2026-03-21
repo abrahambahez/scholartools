@@ -1,4 +1,4 @@
-# scholartools
+![scholartools](scholartools-banner.jpg)
 
 Reference management library built for AI agents. Local-first, no GUI, no human workflows — clean functions an agent can call with confidence.
 
