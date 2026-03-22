@@ -79,6 +79,19 @@ def _unsync_file(args: argparse.Namespace) -> None:
     exit_result(result, args.plain)
 
 
+def _upload_blobs(args: argparse.Namespace) -> None:
+    try:
+        result = scholartools.upload_blobs()
+    except Exception as e:
+        exit_result(Result(ok=False, error=str(e)), plain=False)
+    if args.plain:
+        print(
+            f"uploaded: {result.uploaded}  skipped: {result.skipped}  failed: {result.failed}"
+        )
+        sys.exit(0 if not result.errors else 1)
+    exit_result(result, plain=False)
+
+
 def register(sub: argparse.ArgumentParser) -> None:
     cmds = sub.add_subparsers(dest="sync_cmd")
 
@@ -104,3 +117,5 @@ def register(sub: argparse.ArgumentParser) -> None:
     p_unsync_file = cmds.add_parser("unsync-file")
     p_unsync_file.add_argument("citekey")
     p_unsync_file.set_defaults(func=_unsync_file)
+
+    cmds.add_parser("upload-blobs").set_defaults(func=_upload_blobs)

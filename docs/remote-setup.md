@@ -191,8 +191,12 @@ uv run python scripts/backfill_uid.py
 # 3. snapshot the current state to S3
 scht sync snapshot
 
-# 4. upload blobs for each record that has a linked local file
-scht sync sync-file <citekey>   # repeat for each citekey with a linked file
+# 4. upload blobs for all records that have a linked local file
+scht sync upload-blobs
+
+# upload-blobs sets blob_ref on each record but writes no change log entries.
+# follow with snapshot to publish the updated blob_ref state to S3.
+scht sync snapshot
 
 # 5. push change log
 scht sync push

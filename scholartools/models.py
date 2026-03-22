@@ -436,3 +436,10 @@ class ReindexResult(BaseModel):
     repaired: int
     already_ok: int
     not_found: int
+
+
+class UploadBlobsResult(BaseModel):
+    uploaded: int
+    skipped: int
+    failed: int
+    errors: list[str] = Field(default_factory=list)

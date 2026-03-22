@@ -45,6 +45,7 @@ from scholartools.models import (
     SearchResult,
     StageResult,
     UpdateResult,
+    UploadBlobsResult,
 )
 from scholartools.models import (
     DeviceIdentity as DeviceIdentity,
@@ -269,6 +270,10 @@ def get_file(citekey: str):
 
 def prefetch_blobs(citekeys: list[str] | None = None) -> PrefetchResult:
     return _run(sync_service.prefetch_blobs(_get_ctx(), citekeys))
+
+
+def upload_blobs() -> UploadBlobsResult:
+    return _run(sync_service.upload_blobs(_get_ctx()))
 
 
 def move_file(citekey: str, dest_name: str) -> MoveResult:

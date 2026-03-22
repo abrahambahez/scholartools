@@ -17,6 +17,7 @@ from scholartools.models import (
     PullResult,
     PushResult,
     Result,
+    UploadBlobsResult,
 )
 from scholartools.services import hlc as hlc_service
 from scholartools.services import peers as peers_service
@@ -690,3 +691,67 @@ async def sync_file(ctx: LibraryCtx, citekey: str) -> Result:
     await ctx.write_all(records)
 
     return Result(ok=True)
+
+
+async def upload_blobs(ctx: LibraryCtx) -> UploadBlobsResult:
+    if ctx.sync_config is None:
+        return UploadBlobsResult(
+            uploaded=0, skipped=0, failed=0, errors=["sync not configured"]
+        )
+
+    records = await ctx.read_all()
+    uploaded = 0
+    skipped = 0
+    failed = 0
+    errors = []
+
+    for record in records:
+        file_rec = record.get("_file")
+        if not file_rec:
+            continue
+
+        citekey = record.get("id", "")
+        raw_path = file_rec["path"]
+        file_path = Path(raw_path)
+        if not file_path.is_absolute():
+            file_path = Path(ctx.files_dir) / raw_path
+
+        try:
+            sha256 = compute_sha256_streaming(file_path)
+        except OSError as exc:
+            failed += 1
+            errors.append(f"{citekey}: hash failed: {exc}")
+            continue
+
+        blob_ref = f"sha256:{sha256}"
+        if record.get("blob_ref") == blob_ref:
+            skipped += 1
+            continue
+
+        blob_key = f"blobs/{sha256}"
+        try:
+            if not s3_sync.exists(ctx.sync_config, blob_key):
+                s3_sync.upload(ctx.sync_config, file_path, blob_key)
+                ts = hlc_service.now(ctx.peer_id)
+                meta = json.dumps(
+                    {
+                        "citekey": citekey,
+                        "filename": file_rec["path"],
+                        "uploaded_by": ctx.peer_id,
+                        "timestamp_hlc": ts,
+                    },
+                    ensure_ascii=False,
+                ).encode()
+                s3_sync.upload_bytes(ctx.sync_config, meta, f"{blob_key}.meta")
+            uploaded += 1
+        except Exception as exc:
+            failed += 1
+            errors.append(f"{citekey}: upload failed: {exc}")
+            continue
+
+        record["blob_ref"] = blob_ref
+
+    await ctx.write_all(records)
+    return UploadBlobsResult(
+        uploaded=uploaded, skipped=skipped, failed=failed, errors=errors
+    )

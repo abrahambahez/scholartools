@@ -546,3 +546,247 @@ def test_create_snapshot_no_sync_config(tmp_path):
     with patch("scholartools.adapters.s3_sync.upload") as mock_upload:
         asyncio.run(create_snapshot(ctx))
     mock_upload.assert_not_called()
+
+
+# --- upload_blobs ---
+
+
+def test_upload_blobs_no_sync_config(tmp_path):
+    from scholartools.services.sync import upload_blobs
+
+    ctx, _ = make_ctx(tmp_path, sync_config=None)
+    result = asyncio.run(upload_blobs(ctx))
+    assert result.failed == 0
+    assert result.uploaded == 0
+    assert "sync not configured" in result.errors[0]
+
+
+def test_upload_blobs_no_file_records(tmp_path):
+    from scholartools.services.sync import upload_blobs
+
+    records = [{"id": "s2020", "type": "article"}]
+    ctx, _ = make_ctx(tmp_path, sync_config=make_sync_config(), records=records)
+    with (
+        patch("scholartools.adapters.s3_sync.exists") as mock_exists,
+        patch("scholartools.adapters.s3_sync.upload") as mock_upload,
+    ):
+        result = asyncio.run(upload_blobs(ctx))
+    assert result.uploaded == 0
+    assert result.skipped == 0
+    assert result.failed == 0
+    mock_exists.assert_not_called()
+    mock_upload.assert_not_called()
+
+
+def test_upload_blobs_uploads_and_sets_blob_ref(tmp_path):
+    from scholartools.services.sync import upload_blobs
+
+    pdf = tmp_path / "files" / "s2020.pdf"
+    pdf.parent.mkdir(parents=True)
+    pdf.write_bytes(b"fakepdf")
+
+    records = [
+        {
+            "id": "s2020",
+            "type": "article",
+            "_file": {
+                "path": "s2020.pdf",
+                "mime_type": "application/pdf",
+                "size_bytes": 7,
+                "added_at": "2024-01-01",
+            },
+        }
+    ]
+    ctx, saved = make_ctx(tmp_path, sync_config=make_sync_config(), records=records)
+
+    fake_sha = "abc123"
+    with (
+        patch(
+            "scholartools.services.sync.compute_sha256_streaming", return_value=fake_sha
+        ),
+        patch("scholartools.adapters.s3_sync.exists", return_value=False),
+        patch("scholartools.adapters.s3_sync.upload") as mock_upload,
+        patch("scholartools.adapters.s3_sync.upload_bytes") as mock_upload_bytes,
+    ):
+        result = asyncio.run(upload_blobs(ctx))
+
+    assert result.uploaded == 1
+    assert result.skipped == 0
+    assert result.failed == 0
+    mock_upload.assert_called_once()
+    mock_upload_bytes.assert_called_once()
+    assert saved[0]["blob_ref"] == f"sha256:{fake_sha}"
+
+
+def test_upload_blobs_skip_already_matching_blob_ref(tmp_path):
+    from scholartools.services.sync import upload_blobs
+
+    fake_sha = "abc123"
+    records = [
+        {
+            "id": "s2020",
+            "type": "article",
+            "blob_ref": f"sha256:{fake_sha}",
+            "_file": {
+                "path": "s2020.pdf",
+                "mime_type": "application/pdf",
+                "size_bytes": 7,
+                "added_at": "2024-01-01",
+            },
+        }
+    ]
+    ctx, _ = make_ctx(tmp_path, sync_config=make_sync_config(), records=records)
+
+    with (
+        patch(
+            "scholartools.services.sync.compute_sha256_streaming", return_value=fake_sha
+        ),
+        patch("scholartools.adapters.s3_sync.exists") as mock_exists,
+        patch("scholartools.adapters.s3_sync.upload") as mock_upload,
+    ):
+        result = asyncio.run(upload_blobs(ctx))
+
+    assert result.skipped == 1
+    assert result.uploaded == 0
+    mock_exists.assert_not_called()
+    mock_upload.assert_not_called()
+
+
+def test_upload_blobs_s3_exists_skips_upload_but_sets_blob_ref(tmp_path):
+    from scholartools.services.sync import upload_blobs
+
+    fake_sha = "def456"
+    records = [
+        {
+            "id": "s2020",
+            "type": "article",
+            "_file": {
+                "path": "s2020.pdf",
+                "mime_type": "application/pdf",
+                "size_bytes": 7,
+                "added_at": "2024-01-01",
+            },
+        }
+    ]
+    ctx, saved = make_ctx(tmp_path, sync_config=make_sync_config(), records=records)
+
+    with (
+        patch(
+            "scholartools.services.sync.compute_sha256_streaming", return_value=fake_sha
+        ),
+        patch("scholartools.adapters.s3_sync.exists", return_value=True),
+        patch("scholartools.adapters.s3_sync.upload") as mock_upload,
+        patch("scholartools.adapters.s3_sync.upload_bytes") as mock_upload_bytes,
+    ):
+        result = asyncio.run(upload_blobs(ctx))
+
+    assert result.uploaded == 1
+    mock_upload.assert_not_called()
+    mock_upload_bytes.assert_not_called()
+    assert saved[0]["blob_ref"] == f"sha256:{fake_sha}"
+
+
+def test_upload_blobs_failed_record_continues(tmp_path):
+    from scholartools.services.sync import upload_blobs
+
+    records = [
+        {
+            "id": "bad",
+            "type": "article",
+            "_file": {
+                "path": "missing.pdf",
+                "mime_type": "application/pdf",
+                "size_bytes": 0,
+                "added_at": "2024-01-01",
+            },
+        },
+        {
+            "id": "good",
+            "type": "article",
+            "_file": {
+                "path": "good.pdf",
+                "mime_type": "application/pdf",
+                "size_bytes": 7,
+                "added_at": "2024-01-01",
+            },
+        },
+    ]
+    ctx, saved = make_ctx(tmp_path, sync_config=make_sync_config(), records=records)
+
+    fake_sha = "ggg999"
+
+    def hash_side_effect(path):
+        if "missing" in str(path):
+            raise OSError("file not found")
+        return fake_sha
+
+    with (
+        patch(
+            "scholartools.services.sync.compute_sha256_streaming",
+            side_effect=hash_side_effect,
+        ),
+        patch("scholartools.adapters.s3_sync.exists", return_value=False),
+        patch("scholartools.adapters.s3_sync.upload"),
+        patch("scholartools.adapters.s3_sync.upload_bytes"),
+    ):
+        result = asyncio.run(upload_blobs(ctx))
+
+    assert result.failed == 1
+    assert result.uploaded == 1
+    assert any("bad" in e for e in result.errors)
+
+
+def test_upload_blobs_writes_library_once(tmp_path):
+    from scholartools.services.sync import upload_blobs
+
+    write_count = 0
+
+    async def counting_write(records):
+        nonlocal write_count
+        write_count += 1
+
+    fake_sha = "abc123"
+    records_data = [
+        {
+            "id": f"s{i}",
+            "type": "article",
+            "_file": {
+                "path": f"s{i}.pdf",
+                "mime_type": "application/pdf",
+                "size_bytes": 7,
+                "added_at": "2024-01-01",
+            },
+        }
+        for i in range(3)
+    ]
+
+    async def read_all():
+        return list(records_data)
+
+    ctx = LibraryCtx(
+        read_all=read_all,
+        write_all=counting_write,
+        copy_file=AsyncMock(),
+        delete_file=AsyncMock(),
+        rename_file=AsyncMock(),
+        list_file_paths=AsyncMock(return_value=[]),
+        files_dir=str(tmp_path / "files"),
+        api_sources=[],
+        peers_dir=str(tmp_path / "peers"),
+        data_dir=str(tmp_path),
+        peer_id="peer-a",
+        device_id="dev-1",
+        sync_config=make_sync_config(),
+    )
+
+    with (
+        patch(
+            "scholartools.services.sync.compute_sha256_streaming", return_value=fake_sha
+        ),
+        patch("scholartools.adapters.s3_sync.exists", return_value=False),
+        patch("scholartools.adapters.s3_sync.upload"),
+        patch("scholartools.adapters.s3_sync.upload_bytes"),
+    ):
+        asyncio.run(upload_blobs(ctx))
+
+    assert write_count == 1
