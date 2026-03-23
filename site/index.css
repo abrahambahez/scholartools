@@ -1,0 +1,991 @@
+/* @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=Space+Grotesk:wght@300..700&family=JetBrains+Mono:wght@400;500&display=swap'); */
+
+/* 
+ * Enlightened Rebel CSS Theme
+ * A Brutalist Scholastic Aesthetic for Pandoc & Web
+ */
+
+@property --oxblood {
+  syntax: '<color>';
+  initial-value: #610000;
+  inherits: true;
+}
+
+@property --parchment {
+  syntax: '<color>';
+  initial-value: #FCF9F0;
+  inherits: true;
+}
+
+:root {
+  /* Colors */
+  --c-oxblood: #610000;
+  --c-oxblood-bright: #8B0000;
+  --c-parchment: #FCF9F0;
+  --c-ink: #000000;
+  --c-paper-dark: #F1EEE5;
+
+  /* Typography Scale (Fluid) */
+  --fs-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --fs-sm: clamp(0.875rem, 0.8rem + 0.3vw, 1rem);
+  --fs-base: clamp(1rem, 0.95rem + 0.4vw, 1.125rem);
+  --fs-md: clamp(1.25rem, 1.1rem + 0.8vw, 1.75rem);
+  --fs-lg: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+  --fs-xl: clamp(3rem, 2rem + 5vw, 8rem);
+
+  /* Spacing */
+  --space-unit: clamp(1rem, 0.8rem + 1vw, 2rem);
+  --border-thick: 3px;
+  --border-thin: 1.5px;
+
+  /* Fonts */
+  --font-serif: "Newsreader", serif;
+  --font-mono: "Space Grotesk", "JetBrains Mono", monospace;
+}
+
+/* --- Base Elements --- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+body {
+  background-color: var(--c-parchment);
+  color: var(--c-ink);
+  font-family: var(--font-mono);
+  font-size: var(--fs-base);
+  line-height: 1.5;
+  padding: 0;
+  /* Changed from var(--space-unit) to allow full-width sections */
+  max-width: 100%;
+  /* Changed from 1200px to allow full-width sections */
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- Typography --- */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  line-height: 0.9;
+  margin-block: 1.5em 0.5em;
+  text-transform: none;
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: var(--fs-xl);
+  border-bottom: var(--border-thick) solid var(--c-ink);
+  padding-bottom: 0.2em;
+}
+
+h2 {
+  font-size: var(--fs-lg);
+  font-style: italic;
+}
+
+h3 {
+  font-size: var(--fs-md);
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+  font-weight: 800;
+}
+
+p {
+  margin-block-end: 1.2em;
+  max-width: 65ch;
+}
+
+a {
+  color: var(--c-oxblood);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
+  transition: color 0.1s;
+}
+
+a:not(.brutalist-button):hover {
+  background-color: var(--c-ink);
+  color: var(--c-parchment);
+  text-decoration: none;
+}
+
+/* --- Pandoc / Markdown Specifics --- */
+
+blockquote {
+  border: var(--border-thick) solid var(--c-ink);
+  background-color: var(--c-paper-dark);
+  padding: var(--space-unit);
+  margin-block: 2em;
+  position: relative;
+}
+
+blockquote::before {
+  content: "EXCERPT";
+  position: absolute;
+  top: calc(var(--border-thick) * -1 - 0.7em);
+  left: 1rem;
+  background: var(--c-ink);
+  color: var(--c-parchment);
+  font-size: var(--fs-xs);
+  padding: 2px 8px;
+  font-weight: 900;
+}
+
+code {
+  font-family: "JetBrains Mono", monospace;
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 0.2em 0.4em;
+  font-size: 0.9em;
+  border: 1px solid var(--c-ink);
+}
+
+pre {
+  background-color: var(--c-ink);
+  color: var(--c-parchment);
+  padding: var(--space-unit);
+  overflow-x: auto;
+  border: var(--border-thick) solid var(--c-oxblood);
+  margin-block: 2em;
+}
+
+pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-block: 2em;
+  border: var(--border-thick) solid var(--c-ink);
+}
+
+th,
+td {
+  border: var(--border-thin) solid var(--c-ink);
+  padding: 0.75rem;
+  text-align: left;
+}
+
+th {
+  background-color: var(--c-paper-dark);
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: var(--fs-xs);
+}
+
+hr {
+  border: none;
+  border-top: var(--border-thick) solid var(--c-ink);
+  margin-block: 3em;
+}
+
+/* --- Custom Classes for Pandoc Containers --- */
+
+.brutalist-card {
+  border: var(--border-thick) solid var(--c-ink);
+  padding: var(--space-unit);
+  background: var(--c-parchment);
+}
+
+.oxblood-callout {
+  background-color: var(--c-oxblood);
+  color: var(--c-parchment);
+  border: var(--border-thick) solid var(--c-ink);
+  padding: var(--space-unit);
+}
+
+.oxblood-callout h1,
+.oxblood-callout h2,
+.oxblood-callout h3 {
+  color: white;
+  border-color: white;
+}
+
+.side-note {
+  font-size: var(--fs-sm);
+  border-left: var(--border-thick) solid var(--c-oxblood);
+  padding-left: 1.5rem;
+  margin-left: 2rem;
+  opacity: 0.8;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 0;
+  border: var(--border-thin) solid var(--c-ink);
+}
+
+.columns>* {
+  border: var(--border-thin) solid var(--c-ink);
+  padding: var(--space-unit);
+}
+
+/* --- Buttons (for interactive docs) --- */
+
+button,
+.btn {
+  display: inline-block;
+  background: var(--c-ink);
+  color: var(--c-parchment);
+  border: var(--border-thick) solid var(--c-ink);
+  padding: 0.75rem 1.5rem;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: none;
+}
+
+button:hover,
+.btn:hover {
+  background: var(--c-oxblood);
+  color: white;
+}
+
+button:active,
+.btn:active {
+  transform: translate(2px, 2px);
+}
+
+/* --- Compatibility with existing index.html --- */
+
+.brutalist-border {
+  border: var(--border-thin) solid var(--c-ink);
+}
+
+.brutalist-border-thick {
+  border: var(--border-thick) solid var(--c-ink);
+}
+
+.brutalist-button {
+  display: inline-block;
+  background: var(--c-ink);
+  color: var(--c-parchment);
+  border: var(--border-thick) solid var(--c-ink);
+  padding: 0.75rem 1.5rem;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: none;
+}
+
+.brutalist-button:hover {
+  background: var(--c-oxblood);
+  color: white;
+}
+
+.brutalist-button:active {
+  transform: translate(2px, 2px);
+}
+
+.brutalist-button-secondary {
+  display: inline-block;
+  background: var(--c-parchment);
+  color: var(--c-ink);
+  border: var(--border-thick) solid var(--c-ink);
+  padding: 0.75rem 1.5rem;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: none;
+}
+
+.brutalist-button-secondary:hover {
+  background: var(--c-ink);
+  color: var(--c-parchment);
+}
+
+.brutalist-button-secondary:active {
+  transform: translate(2px, 2px);
+}
+
+.brutalist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 0;
+  border-top: var(--border-thick) solid var(--c-ink);
+  border-left: var(--border-thick) solid var(--c-ink);
+}
+
+.brutalist-grid-item {
+  border-right: var(--border-thick) solid var(--c-ink);
+  border-bottom: var(--border-thick) solid var(--c-ink);
+  padding: var(--space-unit);
+}
+
+::selection {
+  background-color: var(--c-oxblood);
+  color: var(--c-parchment);
+}
+
+/* Layout Utilities (Basic replacements for Tailwind) */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.gap-4 {
+  gap: 1rem;
+}
+
+.gap-8 {
+  gap: 2rem;
+}
+
+.gap-12 {
+  gap: 3rem;
+}
+
+.grid {
+  display: grid;
+}
+
+.hidden {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .md\:flex {
+    display: flex;
+  }
+
+  .md\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .md\:grid-cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .lg\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.sticky {
+  position: sticky;
+}
+
+.top-0 {
+  top: 0;
+}
+
+.z-50 {
+  z-index: 50;
+}
+
+.px-6 {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.py-4 {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.py-20 {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+}
+
+.p-2 {
+  padding: 0.5rem;
+}
+
+.p-12 {
+  padding: 3rem;
+}
+
+.px-3 {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+.py-1 {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.py-2 {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+
+.mb-8 {
+  margin-bottom: 2rem;
+}
+
+.mb-12 {
+  margin-bottom: 3rem;
+}
+
+.mt-20 {
+  margin-top: 5rem;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.h-auto {
+  height: auto;
+}
+
+.h-full {
+  height: 100%;
+}
+
+.w-8 {
+  width: 2rem;
+}
+
+.h-8 {
+  height: 2rem;
+}
+
+.w-5 {
+  width: 1.25rem;
+}
+
+.h-5 {
+  height: 1.25rem;
+}
+
+.w-3\.5 {
+  width: 0.875rem;
+}
+
+.h-3\.5 {
+  height: 0.875rem;
+}
+
+.max-w-xs {
+  max-width: 20rem;
+}
+
+.max-w-4xl {
+  max-width: 56rem;
+}
+
+.max-w-6xl {
+  max-width: 72rem;
+}
+
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.bg-parchment {
+  background-color: var(--c-parchment);
+}
+
+.bg-structural-black {
+  background-color: var(--c-ink);
+}
+
+.bg-oxblood {
+  background-color: var(--c-oxblood);
+}
+
+.text-parchment {
+  color: var(--c-parchment);
+}
+
+.text-structural-black {
+  color: var(--c-ink);
+}
+
+.text-oxblood {
+  color: var(--c-oxblood);
+}
+
+.text-white {
+  color: white;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.font-medium {
+  font-medium: 500;
+}
+
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+.uppercase {
+  text-transform: uppercase;
+}
+
+.italic {
+  font-style: italic;
+}
+
+.tracking-tighter {
+  letter-spacing: -0.05em;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.text-xl {
+  font-size: 1.25rem;
+}
+
+.text-2xl {
+  font-size: 1.5rem;
+}
+
+.text-4xl {
+  font-size: 2.25rem;
+}
+
+.text-5xl {
+  font-size: 3rem;
+}
+
+.text-6xl {
+  font-size: 3.75rem;
+}
+
+.md\:text-6xl {
+  @media (min-width: 768px) {
+    font-size: 3.75rem;
+  }
+}
+
+.md\:text-7xl {
+  @media (min-width: 768px) {
+    font-size: 4.5rem;
+  }
+}
+
+.md\:text-8xl {
+  @media (min-width: 768px) {
+    font-size: 6rem;
+  }
+}
+
+.lg\:text-9xl {
+  @media (min-width: 1024px) {
+    font-size: 8rem;
+  }
+}
+
+.leading-tight {
+  line-height: 1.25;
+}
+
+.leading-relaxed {
+  line-height: 1.625;
+}
+
+.opacity-40 {
+  opacity: 0.4;
+}
+
+.opacity-50 {
+  opacity: 0.5;
+}
+
+.opacity-70 {
+  opacity: 0.7;
+}
+
+.opacity-80 {
+  opacity: 0.8;
+}
+
+.opacity-90 {
+  opacity: 0.9;
+}
+
+.border-b-2 {
+  border-bottom-width: 2px;
+}
+
+.border-t-2 {
+  border-top-width: 2px;
+}
+
+.border-structural-black {
+  border-color: var(--c-ink);
+}
+
+.grayscale {
+  filter: grayscale(100%);
+}
+
+.hover\:grayscale-0:hover {
+  filter: grayscale(0);
+}
+
+.transition-all {
+  transition-property: all;
+}
+
+.duration-500 {
+  transition-duration: 500ms;
+}
+
+.duration-200 {
+  transition-duration: 200ms;
+}
+
+.overflow-hidden {
+  overflow: hidden;
+}
+
+.object-cover {
+  object-fit: cover;
+}
+
+.text-[10px] {
+  font-size: 10px;
+}
+
+.leading-\[0\.9\] {
+  line-height: 0.9;
+}
+
+.space-y-6>*+* {
+  margin-top: 1.5rem;
+}
+
+.space-y-8>*+* {
+  margin-top: 2rem;
+}
+
+.min-h-screen {
+  min-height: 100vh;
+}
+
+.pt-8 {
+  padding-top: 2rem;
+}
+
+.border-structural-black\/10 {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.group:hover .group-hover\:bg-structural-black {
+  background-color: var(--c-ink);
+}
+
+.group:hover .group-hover\:text-parchment {
+  color: var(--c-parchment);
+}
+
+.hover\:bg-structural-black:hover {
+  background-color: var(--c-ink);
+}
+
+.hover\:text-parchment:hover {
+  color: var(--c-parchment);
+}
+
+.hover\:text-oxblood:hover {
+  color: var(--c-oxblood);
+  background-color: transparent;
+  text-decoration: none;
+}
+
+/* Transition utilities */
+.transition-colors {
+  transition-property: background-color, border-color, color, fill, stroke;
+}
+
+/* Grid specific */
+@media (min-width: 768px) {
+  .col-span-2 {
+    grid-column: span 2 / span 2;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.fade-in {
+  opacity: 0;
+  transition: opacity 0.8s ease-out;
+}
+
+.fade-in.visible {
+  opacity: 1;
+}
+
+/* --- Journey cards (workflow section) --- */
+
+.journey-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.journey-card h3 {
+  font-family: var(--font-serif);
+}
+
+.journey-num {
+  font-family: var(--font-serif);
+  font-size: clamp(2.5rem, 3vw, 3.5rem);
+  font-weight: 300;
+  color: var(--c-oxblood);
+  line-height: 1;
+  margin-bottom: 0.75rem;
+}
+
+.journey-layer {
+  display: grid;
+  grid-template-columns: 2.75rem 1fr;
+  gap: 0 0.5rem;
+  align-items: baseline;
+  margin-top: 0.6rem;
+}
+
+.layer--cli {
+  background: var(--c-ink);
+  padding: 0.4rem 0.5rem;
+  margin-top: 0.75rem;
+  margin-left: -var(--space-unit);
+}
+
+.layer-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.55rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  line-height: 1.6;
+}
+
+.layer-label--human { color: var(--c-ink); opacity: 0.4; }
+.layer-label--agent { color: #5E5E5E; opacity: 0.7; }
+.layer-label--cli   { color: var(--c-parchment); opacity: 0.5; }
+
+.layer-content { line-height: 1.4; }
+
+.layer-content--human {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 0.875rem;
+  color: var(--c-ink);
+}
+
+.layer-content--agent {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.65rem;
+  color: #5E5E5E;
+}
+
+.layer-content--cli {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.65rem;
+  color: var(--c-parchment);
+  background: none;
+  border: none;
+  padding: 0;
+  word-break: break-all;
+}
+
+/* --- Spec panel (hero differentiators) --- */
+
+.spec-panel {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  border-top: 2px solid var(--c-ink);
+  padding-top: 1.25rem;
+}
+
+.spec-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0 1.25rem 0 0;
+}
+
+.spec-row:first-child {
+  padding-left: 0;
+}
+
+@media (max-width: 767px) {
+  .spec-panel {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem 0;
+  }
+}
+
+.spec-human {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--c-ink);
+  line-height: 1.2;
+}
+
+.spec-tech {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #5E5E5E;
+  letter-spacing: 0.02em;
+}
+
+.envisioned-panel {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2.5rem 3rem;
+  border-top: 2px solid var(--c-ink);
+  padding-top: 2rem;
+}
+
+.envisioned-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.envisioned-human {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(1.5rem, 2.5vw, 2.5rem);
+  font-weight: 500;
+  color: var(--c-ink);
+  line-height: 1.2;
+}
+
+.envisioned-tech {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: #5E5E5E;
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 767px) {
+  .envisioned-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- Missing utilities --- */
+
+.relative { position: relative; }
+.absolute { position: absolute; }
+.top-3 { top: 0.75rem; }
+.right-3 { right: 0.75rem; }
+
+.inline-block { display: inline-block; }
+.inline-flex { display: inline-flex; }
+
+.items-start { align-items: flex-start; }
+.flex-shrink-0 { flex-shrink: 0; }
+
+.text-lg { font-size: 1.125rem; }
+.text-center { text-align: center; }
+
+.max-w-2xl { max-width: 42rem; }
+
+.gap-6 { gap: 1.5rem; }
+
+.p-6 { padding: 1.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mt-12 { margin-top: 3rem; }
+
+.overflow-x-auto { overflow-x: auto; }
+
+.border-2 { border-width: 2px; border-style: solid; }
+.border-parchment { border-color: var(--c-parchment); }
+
+@media (min-width: 768px) {
+  .md\:flex-row { flex-direction: row; }
+  .md\:px-12 {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+  .md\:text-2xl { font-size: 1.5rem; }
+}
+
+@media (min-width: 1024px) {
+  .lg\:px-24 {
+    padding-left: 6rem;
+    padding-right: 6rem;
+  }
+}
