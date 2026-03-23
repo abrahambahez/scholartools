@@ -108,12 +108,10 @@ jobs:
             cd ../..
           done
 
-      - name: Upload skill zips and install scripts
+      - name: Upload skill zips
         if: env.SKILLS_CHANGED == 'true'
         uses: softprops/action-gh-release@v2
         with:
           files: |
             scholartools-skills-en-${{ env.SCHT_VERSION }}.zip
             scholartools-skills-es-${{ env.SCHT_VERSION }}.zip
-            .build/install-skills.sh
-            .build/install-skills.ps1

@@ -2,6 +2,36 @@
 
 Reference management library built for AI agents. Local-first, no GUI, no human workflows — clean functions an agent can call with confidence.
 
+## install skills
+
+macOS / Linux (default: English):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/abrahambahez/scholartools/main/install-skills.sh | bash
+```
+
+Spanish skills:
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/abrahambahez/scholartools/main/install-skills.sh) --lang es
+```
+
+Windows (elevated PowerShell):
+
+```powershell
+irm https://raw.githubusercontent.com/abrahambahez/scholartools/main/install-skills.ps1 | iex
+```
+
+To uninstall:
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/abrahambahez/scholartools/main/install-skills.sh) --uninstall
+```
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/abrahambahez/scholartools/main/install-skills.ps1))) -Uninstall
+```
+
 ## install
 
 macOS / Linux:
