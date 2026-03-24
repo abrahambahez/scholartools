@@ -29,6 +29,7 @@ a = Analysis(
         "certifi",
         "charset_normalizer",
         "httpx",
+        "socksio",
         "anyio",
         "anyio._backends._asyncio",
         "annotated_types",
