@@ -104,9 +104,10 @@
             Install the CLI and the Claude Code skills to start using scholartools from your agent workflows.
           </p>
 
-          <!-- CLI install -->
+          <!-- macOS / Linux -->
+          <h3 class="font-serif text-xl font-medium mb-8">macOS / Linux</h3>
           <div class="mb-8">
-            <p class="text-xs font-bold uppercase opacity-60 mb-3">Install CLI — macOS / Linux</p>
+            <p class="text-xs font-bold uppercase opacity-60 mb-3">Install CLI</p>
             <div class="relative group">
               <pre class="bg-structural-black text-parchment p-6 text-sm overflow-x-auto brutalist-border"><code id="install-cli">curl -fsSL https://raw.githubusercontent.com/abrahambahez/scholartools/main/install.sh | bash</code></pre>
               <button onclick="copyCode('install-cli', this)"
@@ -115,10 +116,22 @@
               </button>
             </div>
           </div>
+          <div class="mb-12">
+            <p class="text-xs font-bold uppercase opacity-60 mb-3">Install Claude Code skills</p>
+            <div class="relative group">
+              <pre class="bg-structural-black text-parchment p-6 text-sm overflow-x-auto brutalist-border"><code id="install-skills">curl -fsSL https://raw.githubusercontent.com/abrahambahez/scholartools/main/install-skills.sh | bash</code></pre>
+              <button onclick="copyCode('install-skills', this)"
+                class="absolute top-3 right-3 bg-parchment text-structural-black px-3 py-1 text-xs font-bold uppercase border-2 border-parchment hover:bg-structural-black hover:text-parchment transition-colors">
+                Copy
+              </button>
+            </div>
+          </div>
 
-          <!-- CLI install Windows -->
+          <!-- Windows -->
+          <h3 class="font-serif text-xl font-medium mb-3">Windows</h3>
+          <p class="text-sm opacity-60 mb-8">Run these commands from a PowerShell terminal opened as Administrator (right-click → "Run as administrator").</p>
           <div class="mb-8">
-            <p class="text-xs font-bold uppercase opacity-60 mb-3">Install CLI — Windows (elevated PowerShell)</p>
+            <p class="text-xs font-bold uppercase opacity-60 mb-3">Install CLI</p>
             <div class="relative group">
               <pre class="bg-structural-black text-parchment p-6 text-sm overflow-x-auto brutalist-border"><code id="install-cli-win">irm https://raw.githubusercontent.com/abrahambahez/scholartools/main/install.ps1 | iex</code></pre>
               <button onclick="copyCode('install-cli-win', this)"
@@ -127,13 +140,11 @@
               </button>
             </div>
           </div>
-
-          <!-- Skills install -->
           <div class="mb-12">
             <p class="text-xs font-bold uppercase opacity-60 mb-3">Install Claude Code skills</p>
             <div class="relative group">
-              <pre class="bg-structural-black text-parchment p-6 text-sm overflow-x-auto brutalist-border"><code id="install-skills">curl -fsSL https://raw.githubusercontent.com/abrahambahez/scholartools/main/install-skills.sh | bash</code></pre>
-              <button onclick="copyCode('install-skills', this)"
+              <pre class="bg-structural-black text-parchment p-6 text-sm overflow-x-auto brutalist-border"><code id="install-skills-win">irm https://raw.githubusercontent.com/abrahambahez/scholartools/main/install-skills.ps1 | iex</code></pre>
+              <button onclick="copyCode('install-skills-win', this)"
                 class="absolute top-3 right-3 bg-parchment text-structural-black px-3 py-1 text-xs font-bold uppercase border-2 border-parchment hover:bg-structural-black hover:text-parchment transition-colors">
                 Copy
               </button>
