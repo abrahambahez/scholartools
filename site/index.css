@@ -347,6 +347,10 @@ button:active,
   align-items: center;
 }
 
+.items-baseline {
+  align-items: baseline;
+}
+
 .justify-between {
   justify-content: space-between;
 }
@@ -944,6 +948,8 @@ button:active,
     grid-template-columns: 1fr;
   }
 }
+
+.leading-none { line-height: 1; }
 
 /* --- Missing utilities --- */
 

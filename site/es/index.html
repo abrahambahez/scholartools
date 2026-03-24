@@ -1,16 +1,16 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scholartools | Reference management for AI agents</title>
+  <title>scholartools | Gestión de referencias para agentes de IA</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=Space+Grotesk:wght@300..700&family=JetBrains+Mono:wght@400;500&display=swap"
     rel="stylesheet" crossorigin="anonymous">
-  <link rel="stylesheet" href="./index.css">
+  <link rel="stylesheet" href="../index.css">
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
@@ -19,13 +19,13 @@
     <!-- Navigation -->
     <nav
       class="sticky top-0 z-50 bg-parchment border-b-2 border-structural-black px-6 py-4 flex justify-between items-center">
-      <a href="#">
-        <img src="./scholartools-logo.svg" alt="scholartools" style="height: 28px; width: auto;">
+      <a href="../">
+        <img src="../scholartools-logo.svg" alt="scholartools" style="height: 28px; width: auto;">
       </a>
-      <nav class="inline-flex items-baseline gap-2" aria-label="Language">
+      <nav class="inline-flex items-baseline gap-2" aria-label="Idioma">
         <span class="font-mono text-xs opacity-50 leading-none">LANG</span>
-        <span class="font-mono text-xs font-bold leading-none border-b-2 border-structural-black">[EN]</span>
-        <a href="./es/" class="font-mono text-xs font-bold leading-none opacity-40 hover:text-oxblood">[ES]</a>
+        <a href="../" class="font-mono text-xs font-bold leading-none opacity-40 hover:text-oxblood">[EN]</a>
+        <span class="font-mono text-xs font-bold leading-none border-b-2 border-structural-black">[ES]</span>
       </nav>
     </nav>
 
@@ -38,43 +38,42 @@
               <span id="version-badge">[Beta]</span>
             </span>
             <h1 class="text-6xl md:text-8xl font-serif leading-[0.9] mb-8">
-              <span class="italic">Research tookit </span> for <span class="text-oxblood">human + AI agent</span>
-              workflows
+              <span class="italic">Herramientas de investigación</span> para optimizar trabajo entre <span
+                class="text-oxblood">humanos y agentes de IA</span>
             </h1>
             <p class="text-xl font-medium leading-tight mb-12 max-w-2xl">
-              A Python library +skills, prompts and more artifacts that gives AI agents a reliable, deterministic
-              interface to search, fetch, store, and
-              manage academic references. Think Zotero rebuilt as a machine-native primitive: no GUI, no human
-              workflows — clean functions an agent can call with confidence.
+              Una biblioteca Python +<i>agent skills, prompts</i> y más artefactos
+              que dan a los agentes de IA una interfaz
+              confiable y determinista para buscar, obtener, almacenar y gestionar referencias académicas.
             </p>
 
             <!-- Differentiators -->
             <div class="spec-panel">
               <div class="spec-row">
-                <span class="spec-human">Use AI agents confidently</span>
+                <span class="spec-human">Usa agentes de IA con confianza</span>
                 <span class="spec-tech">[agent-native-functions]</span>
               </div>
               <div class="spec-row">
-                <span class="spec-human">Increase Reference Quality</span>
+                <span class="spec-human">Mejora la calidad de tus referencias</span>
                 <span class="spec-tech">[CSL-JSON · two-stage-model]</span>
               </div>
               <div class="spec-row">
-                <span class="spec-human">Explore and filter readings</span>
+                <span class="spec-human">Explora y filtra fuentes de información</span>
                 <span class="spec-tech">[staging → library]</span>
               </div>
               <div class="spec-row">
-                <span class="spec-human">Share a library with a research community</span>
+                <span class="spec-human">Comparte una biblioteca colectivamente</span>
                 <span class="spec-tech">[Ed25519 · LWW-sync]</span>
               </div>
               <div class="spec-row">
-                <span class="spec-human">Work offline, own your library</span>
+                <span class="spec-human">Trabaja sin conexión, controla tus datos</span>
                 <span class="spec-tech">[local-first · small AI compatible]</span>
               </div>
             </div>
 
             <div class="flex gap-4 mt-12">
-              <a href="#get-started" class="brutalist-button inline-flex items-center gap-2">
-                Get Started <i data-lucide="arrow-down" class="w-5 h-5"></i>
+              <a href="#comenzar" class="brutalist-button inline-flex items-center gap-2">
+                Comenzar <i data-lucide="arrow-down" class="w-5 h-5"></i>
               </a>
               <a href="https://github.com/abrahambahez/scholartools"
                 class="brutalist-button-secondary inline-flex items-center gap-2">
@@ -90,60 +89,61 @@
       </section>
 
       <!-- Install CTA -->
-      <section id="get-started"
+      <section id="comenzar"
         class="px-6 py-20 md:px-12 lg:px-24 border-b-2 border-structural-black bg-oxblood text-parchment">
         <div class="max-w-4xl mx-auto">
           <h2 class="text-5xl md:text-7xl font-serif mb-8">
-            Get started
+            Comenzar
           </h2>
           <p class="text-lg mb-12 opacity-90">
-            Install the CLI and the Claude Code skills to start using scholartools from your agent workflows.
+            Instala el CLI y las skills de Claude Code para empezar a usar scholartools desde tus flujos de trabajo con
+            agentes.
           </p>
 
           <!-- macOS / Linux -->
           <h3 class="font-serif text-xl font-medium mb-8">macOS / Linux</h3>
           <div class="mb-8">
-            <p class="text-xs font-bold uppercase opacity-60 mb-3">Install CLI</p>
+            <p class="text-xs font-bold uppercase opacity-60 mb-3">Instalar CLI</p>
             <div class="relative group">
               <pre class="bg-structural-black text-parchment p-6 text-sm overflow-x-auto brutalist-border"><code id="install-cli">curl -fsSL https://raw.githubusercontent.com/abrahambahez/scholartools/main/install.sh | bash</code></pre>
               <button onclick="copyCode('install-cli', this)"
                 class="absolute top-3 right-3 bg-parchment text-structural-black px-3 py-1 text-xs font-bold uppercase border-2 border-parchment hover:bg-structural-black hover:text-parchment transition-colors">
-                Copy
+                Copiar
               </button>
             </div>
           </div>
           <div class="mb-12">
-            <p class="text-xs font-bold uppercase opacity-60 mb-3">Install Claude Code skills</p>
+            <p class="text-xs font-bold uppercase opacity-60 mb-3">Instalar skills de Claude Code</p>
             <div class="relative group">
               <pre class="bg-structural-black text-parchment p-6 text-sm overflow-x-auto brutalist-border"><code id="install-skills">curl -fsSL https://raw.githubusercontent.com/abrahambahez/scholartools/main/install-skills.sh | bash</code></pre>
               <button onclick="copyCode('install-skills', this)"
                 class="absolute top-3 right-3 bg-parchment text-structural-black px-3 py-1 text-xs font-bold uppercase border-2 border-parchment hover:bg-structural-black hover:text-parchment transition-colors">
-                Copy
+                Copiar
               </button>
             </div>
           </div>
 
           <!-- Windows -->
           <h3 class="font-serif text-xl font-medium mb-3">Windows</h3>
-          <p class="text-sm opacity-60 mb-8">Run these commands from a PowerShell terminal opened as Administrator
-            (right-click → "Run as administrator").</p>
+          <p class="text-sm opacity-60 mb-8">Ejecuta estos comandos desde una terminal PowerShell abierta como
+            Administrador (clic derecho → "Ejecutar como administrador").</p>
           <div class="mb-8">
-            <p class="text-xs font-bold uppercase opacity-60 mb-3">Install CLI</p>
+            <p class="text-xs font-bold uppercase opacity-60 mb-3">Instalar CLI</p>
             <div class="relative group">
               <pre class="bg-structural-black text-parchment p-6 text-sm overflow-x-auto brutalist-border"><code id="install-cli-win">irm https://raw.githubusercontent.com/abrahambahez/scholartools/main/install.ps1 | iex</code></pre>
               <button onclick="copyCode('install-cli-win', this)"
                 class="absolute top-3 right-3 bg-parchment text-structural-black px-3 py-1 text-xs font-bold uppercase border-2 border-parchment hover:bg-structural-black hover:text-parchment transition-colors">
-                Copy
+                Copiar
               </button>
             </div>
           </div>
           <div class="mb-12">
-            <p class="text-xs font-bold uppercase opacity-60 mb-3">Install Claude Code skills</p>
+            <p class="text-xs font-bold uppercase opacity-60 mb-3">Instalar skills de Claude Code</p>
             <div class="relative group">
               <pre class="bg-structural-black text-parchment p-6 text-sm overflow-x-auto brutalist-border"><code id="install-skills-win">irm https://raw.githubusercontent.com/abrahambahez/scholartools/main/install-skills.ps1 | iex</code></pre>
               <button onclick="copyCode('install-skills-win', this)"
                 class="absolute top-3 right-3 bg-parchment text-structural-black px-3 py-1 text-xs font-bold uppercase border-2 border-parchment hover:bg-structural-black hover:text-parchment transition-colors">
-                Copy
+                Copiar
               </button>
             </div>
           </div>
@@ -153,20 +153,21 @@
       <!-- What exists today -->
       <section class="px-6 py-20 md:px-12 lg:px-24 border-b-2 border-structural-black bg-parchment">
         <div class="max-w-6xl mx-auto">
-          <p class="text-xs font-bold uppercase opacity-50 mb-12">Research workflow</p>
+          <p class="text-xs font-bold uppercase opacity-50 mb-12">Flujo de trabajo de investigación</p>
           <div class="brutalist-grid">
 
             <div class="brutalist-grid-item journey-card">
               <span class="journey-num">01</span>
-              <h3 class="text-2xl font-bold mb-4 uppercase">Discover</h3>
+              <h3 class="text-2xl font-bold mb-4 uppercase">Descubrir</h3>
               <div class="journey-layer">
-                <span class="layer-label layer-label--human">human</span>
-                <span class="layer-content layer-content--human">"Find recent papers on transformer attention"</span>
+                <span class="layer-label layer-label--human">humano</span>
+                <span class="layer-content layer-content--human">"Encuentra artículos recientes sobre transformer
+                  attention"</span>
               </div>
               <div class="journey-layer">
-                <span class="layer-label layer-label--agent">agent</span>
-                <span class="layer-content layer-content--agent">Searching Semantic Scholar, arXiv, and 4 more
-                  sources…</span>
+                <span class="layer-label layer-label--agent">agente</span>
+                <span class="layer-content layer-content--agent">Buscando en Semantic Scholar, arXiv y 4 fuentes
+                  más…</span>
               </div>
               <div class="journey-layer layer--cli">
                 <span class="layer-label layer-label--cli">cli</span>
@@ -176,15 +177,15 @@
 
             <div class="brutalist-grid-item journey-card">
               <span class="journey-num">02</span>
-              <h3 class="text-2xl font-bold mb-4 uppercase">Fetch & Extract</h3>
+              <h3 class="text-2xl font-bold mb-4 uppercase">Obtener / Extraer desde PDF</h3>
               <div class="journey-layer">
-                <span class="layer-label layer-label--human">human</span>
-                <span class="layer-content layer-content--human">"Get the full record for this DOI"</span>
+                <span class="layer-label layer-label--human">humano</span>
+                <span class="layer-content layer-content--human">"Obtén el registro completo para este DOI"</span>
               </div>
               <div class="journey-layer">
-                <span class="layer-label layer-label--agent">agent</span>
-                <span class="layer-content layer-content--agent">Got it. Title, authors, abstract, DOI — all in one
-                  clean record.</span>
+                <span class="layer-label layer-label--agent">agente</span>
+                <span class="layer-content layer-content--agent">Listo. Título, autores, resumen, DOI — todo en un
+                  registro limpio.</span>
               </div>
               <div class="journey-layer layer--cli">
                 <span class="layer-label layer-label--cli">cli</span>
@@ -194,15 +195,15 @@
 
             <div class="brutalist-grid-item journey-card">
               <span class="journey-num">03</span>
-              <h3 class="text-2xl font-bold mb-4 uppercase">Stage</h3>
+              <h3 class="text-2xl font-bold mb-4 uppercase">Área de revisión</h3>
               <div class="journey-layer">
-                <span class="layer-label layer-label--human">human</span>
-                <span class="layer-content layer-content--human">"Save these to review before committing"</span>
+                <span class="layer-label layer-label--human">humano</span>
+                <span class="layer-content layer-content--human">"Guárdalos para revisar antes de confirmar"</span>
               </div>
               <div class="journey-layer">
-                <span class="layer-label layer-label--agent">agent</span>
-                <span class="layer-content layer-content--agent">Saved to staging. Nothing committed yet — you're still
-                  in control.</span>
+                <span class="layer-label layer-label--agent">agente</span>
+                <span class="layer-content layer-content--agent">Guardado en staging. Nada confirmado aún — tú sigues en
+                  control.</span>
               </div>
               <div class="journey-layer layer--cli">
                 <span class="layer-label layer-label--cli">cli</span>
@@ -212,15 +213,15 @@
 
             <div class="brutalist-grid-item journey-card">
               <span class="journey-num">04</span>
-              <h3 class="text-2xl font-bold mb-4 uppercase">Merge</h3>
+              <h3 class="text-2xl font-bold mb-4 uppercase">Fusionar</h3>
               <div class="journey-layer">
-                <span class="layer-label layer-label--human">human</span>
-                <span class="layer-content layer-content--human">"These look good — add them to the library"</span>
+                <span class="layer-label layer-label--human">humano</span>
+                <span class="layer-content layer-content--human">"Se ven bien — agrégalos a la biblioteca"</span>
               </div>
               <div class="journey-layer">
-                <span class="layer-label layer-label--agent">agent</span>
-                <span class="layer-content layer-content--agent">Added to the library. Duplicates removed, citekeys
-                  assigned.</span>
+                <span class="layer-label layer-label--agent">agente</span>
+                <span class="layer-content layer-content--agent">Agregados a la biblioteca. Duplicados eliminados,
+                  citekeys asignados.</span>
               </div>
               <div class="journey-layer layer--cli">
                 <span class="layer-label layer-label--cli">cli</span>
@@ -230,15 +231,15 @@
 
             <div class="brutalist-grid-item journey-card">
               <span class="journey-num">05</span>
-              <h3 class="text-2xl font-bold mb-4 uppercase">File Archive</h3>
+              <h3 class="text-2xl font-bold mb-4 uppercase">Gestión de archivos</h3>
               <div class="journey-layer">
-                <span class="layer-label layer-label--human">human</span>
-                <span class="layer-content layer-content--human">"Attach this PDF to the reference"</span>
+                <span class="layer-label layer-label--human">humano</span>
+                <span class="layer-content layer-content--human">"Adjunta este PDF a la referencia"</span>
               </div>
               <div class="journey-layer">
-                <span class="layer-label layer-label--agent">agent</span>
-                <span class="layer-content layer-content--agent">PDF linked. vaswani2017 now has a file you can open or
-                  extract.</span>
+                <span class="layer-label layer-label--agent">agente</span>
+                <span class="layer-content layer-content--agent">PDF vinculado. vaswani2017 ahora tiene un archivo que
+                  puedes abrir o extraer.</span>
               </div>
               <div class="journey-layer layer--cli">
                 <span class="layer-label layer-label--cli">cli</span>
@@ -248,15 +249,15 @@
 
             <div class="brutalist-grid-item journey-card">
               <span class="journey-num">06</span>
-              <h3 class="text-2xl font-bold mb-4 uppercase">Sync</h3>
+              <h3 class="text-2xl font-bold mb-4 uppercase">Sincronizar</h3>
               <div class="journey-layer">
-                <span class="layer-label layer-label--human">human</span>
-                <span class="layer-content layer-content--human">"Sync my library with the team"</span>
+                <span class="layer-label layer-label--human">humano</span>
+                <span class="layer-content layer-content--human">"Sincroniza mi biblioteca con el equipo"</span>
               </div>
               <div class="journey-layer">
-                <span class="layer-label layer-label--agent">agent</span>
-                <span class="layer-content layer-content--agent">Library synced. Your team sees the same records
-                  now.</span>
+                <span class="layer-label layer-label--agent">agente</span>
+                <span class="layer-content layer-content--agent">Biblioteca sincronizada. Tu equipo ve los mismos
+                  registros ahora.</span>
               </div>
               <div class="journey-layer layer--cli">
                 <span class="layer-label layer-label--cli">cli</span>
@@ -271,22 +272,22 @@
       <!-- Envisioned -->
       <section class="px-6 py-20 md:px-12 lg:px-24 border-b-2 border-structural-black bg-parchment">
         <div class="max-w-6xl mx-auto">
-          <p class="text-xs font-bold uppercase opacity-50 mb-12">Envisioned — not built yet</p>
+          <p class="text-xs font-bold uppercase opacity-50 mb-12">Previsto — aún no construido</p>
           <div class="envisioned-panel opacity-50">
             <div class="envisioned-row">
-              <span class="envisioned-human">Find what you mean, not just what you typed</span>
+              <span class="envisioned-human">Encuentra lo que quieres decir, no solo lo que escribiste</span>
               <span class="envisioned-tech">[embeddings · vector-index · local-llm]</span>
             </div>
             <div class="envisioned-row">
-              <span class="envisioned-human">See how ideas connect and where the gaps are</span>
+              <span class="envisioned-human">Ve cómo se conectan las ideas y dónde están los vacíos</span>
               <span class="envisioned-tech">[graph-traversal · influence-chains · gap-detection]</span>
             </div>
             <div class="envisioned-row">
-              <span class="envisioned-human">Share context, not just references</span>
+              <span class="envisioned-human">Comparte contexto, no solo referencias</span>
               <span class="envisioned-tech">[structured-annotations · shareable · reference-objects]</span>
             </div>
             <div class="envisioned-row">
-              <span class="envisioned-human">Sync without giving up your infrastructure</span>
+              <span class="envisioned-human">Sincroniza sin ceder tu infraestructura</span>
               <span class="envisioned-tech">[ssh-server · garage-storage · self-hosted]</span>
             </div>
           </div>
@@ -297,11 +298,13 @@
       <section class="px-6 py-20 md:px-12 lg:px-24 border-t-2 border-structural-black bg-oxblood text-parchment">
         <div class="max-w-4xl mx-auto text-center">
           <h2 class="text-5xl md:text-7xl font-serif mb-8">
-            Beyond the reference
+            Más allá de la referencia
           </h2>
           <p class="text-xl md:text-2xl opacity-90">
-            We envision a transition from isolated reference metadata to shared epistemic objects that enable deeper
-            conversations.
+            Imaginamos una transición que comenzó con
+            metadatos de referencia aislados,
+            pero va hacia crear objetos epistémicos
+            compartidos que generen conversaciones más profundas.
           </p>
         </div>
       </section>
@@ -311,14 +314,15 @@
         <div class="max-w-6xl mx-auto grid md:grid-cols-4 gap-12">
           <div class="col-span-2">
             <div class="mb-6">
-              <img src="./scholartools-logo.svg" alt="scholartools" style="height: 32px; width: auto;">
+              <img src="../scholartools-logo.svg" alt="scholartools" style="height: 32px; width: auto;">
             </div>
             <p class="text-sm max-w-xs opacity-70">
-              Infrastructure for the moving boundary between human intelligence and agentic automation.
+              Infraestructura pensada para la cambiante frontera entre la inteligencia humana y la automatización con
+              agentes de IA.
             </p>
           </div>
           <div>
-            <h4 class="font-bold uppercase text-xs mb-6 opacity-50">Built by</h4>
+            <h4 class="font-bold uppercase text-xs mb-6 opacity-50">Creado por</h4>
             <ul class="flex flex-col gap-4 text-sm font-bold uppercase">
               <li><a href="https://sergio-barrera.com" class="hover:text-oxblood">Sergio Barrera</a></li>
               <li><a href="https://github.com/abrahambahez" class="hover:text-oxblood">GitHub</a></li>
@@ -326,21 +330,20 @@
             </ul>
           </div>
           <div>
-            <h4 class="font-bold uppercase text-xs mb-6 opacity-50">Release</h4>
+            <h4 class="font-bold uppercase text-xs mb-6 opacity-50">Versión</h4>
             <ul class="flex flex-col gap-4 text-sm font-bold uppercase">
-              <li class="opacity-70">version: [<span id="footer-version">—</span>]</li>
-              <li class="opacity-70">released: [<span id="footer-date">—</span>]</li>
-              <li class="opacity-70">last change: [<span id="footer-sha">—</span>]</li>
+              <li class="opacity-70">versión: [<span id="footer-version">—</span>]</li>
+              <li class="opacity-70">publicada: [<span id="footer-date">—</span>]</li>
+              <li class="opacity-70">último cambio: [<span id="footer-sha">—</span>]</li>
             </ul>
           </div>
         </div>
         <div
           class="max-w-6xl mx-auto mt-20 pt-8 border-t-2 border-structural-black/10 flex flex-col md:flex-row justify-between gap-4 text-[10px] uppercase font-bold opacity-40">
-          <span>scholartools is released under the <a
+          <span>scholartools se publica bajo la <a
               href="https://github.com/abrahambahez/scholartools/blob/main/LICENSE.md"
               class="underline hover:text-oxblood">GNU GPL</a>.</span>
-          <!-- <span id="version-colophon">—</span> -->
-          <span>built for the radical archivist.</span>
+          <span>construido para investigadoras(es) radicales.</span>
         </div>
       </footer>
     </div>
@@ -378,8 +381,8 @@
     function copyCode(id, btn) {
       const text = document.getElementById(id).textContent;
       navigator.clipboard.writeText(text).then(() => {
-        btn.textContent = 'Copied!';
-        setTimeout(() => btn.textContent = 'Copy', 2000);
+        btn.textContent = '¡Copiado!';
+        setTimeout(() => btn.textContent = 'Copiar', 2000);
       });
     }
   </script>
