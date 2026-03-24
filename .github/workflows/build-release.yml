@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -15,7 +16,7 @@ jobs:
         include:
           - os: macos-latest
             platform: macos-arm64
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             platform: linux-x86_64
           - os: windows-latest
             platform: windows-x86_64
