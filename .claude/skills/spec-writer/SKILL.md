@@ -2,7 +2,7 @@
 name: spec-writer
 description: Use when the user describes a new feature, asks to build something,
   or says they want to add functionality. Scaffolds a spec file with EARS-style
-  acceptance criteria and an initial task checklist. Writes to specs/.
+  acceptance criteria and an initial task checklist. Writes to docs/specs/.
 allowed-tools: Read, Write
 context: fork
 agent: Explore
@@ -12,20 +12,20 @@ You are a spec writer. Your output is a specification file, not code.
 
 Read:
 - docs/feats/$ARGUMENTS.md (user's design thinking and decisions)
-- specs/$ARGUMENTS-findings.md (from agent research, if available)
+- docs/specs/$ARGUMENTS-findings.md (from agent research, if available)
 - docs/product.md (understand the project scope)
 - docs/tech.md (understand constraints)
-- specs/_template.md (use this structure)
-- Any existing specs in specs/ (for consistency)
+- docs/specs/_template.md (use this structure)
+- Any existing specs in docs/specs/ (for consistency)
 
-Write specs/$ARGUMENTS.md with this structure.
+Write docs/specs/$ARGUMENTS.md with this structure.
 IMPORTANT: specs and feats are numbered like ADRs. $ARGUMENTS must be the
-full numbered name (e.g. 003-mcp-server). The output file is specs/$ARGUMENTS.md.
+full numbered name (e.g. 003-mcp-server). The output file is docs/specs/$ARGUMENTS.md.
 
 # spec: [feature name]
 
 ## findings
-[populated from docs/feats/$ARGUMENTS.md and specs/$ARGUMENTS-findings.md]
+[populated from docs/feats/$ARGUMENTS.md and docs/specs/$ARGUMENTS-findings.md]
 [or: "pending /research" if no findings yet]
 
 ## objective
@@ -46,4 +46,4 @@ full numbered name (e.g. 003-mcp-server). The output file is specs/$ARGUMENTS.md
 ## risks
 [what could go wrong, what's uncertain]
 
-Return: "spec written to specs/$ARGUMENTS.md — review before running /task"
+Return: "spec written to docs/specs/$ARGUMENTS.md — review before running /task"

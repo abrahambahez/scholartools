@@ -8,7 +8,7 @@ disable-model-invocation: true
 Implement task $ARGUMENTS.
 
 Before spawning the developer agent, confirm:
-1. The relevant spec file exists in specs/
+1. The relevant spec file exists in docs/specs/
 2. The task ID exists in the spec's task list
 3. All blocking tasks are marked complete
 

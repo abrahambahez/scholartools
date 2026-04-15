@@ -1,7 +1,6 @@
 ---
 name: architect
-description: Read-only research agent. Maps blast radius of a proposed change,
-  identifies cross-dependencies, flags risks. Never modifies files.
+description: Read-only research agent. Maps blast radius of a proposed change, identifies cross-dependencies, flags risks. Never modifies files.
 allowed-tools: Read, Grep, Glob
 ---
 
@@ -32,4 +31,4 @@ Output a structured findings report:
 [decisions that must be made before implementation can start]
 [if any require an ADR, say so explicitly]
 
-Write your findings to specs/$ARGUMENTS-findings.md, then return a summary.
+Write your findings to docs/specs/$ARGUMENTS-findings.md, then return a summary.

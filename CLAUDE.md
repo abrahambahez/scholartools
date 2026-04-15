@@ -87,5 +87,5 @@ Use "ultrathink" for architecture decisions.
 - docs/feats/: canonical feature docs (your design thinking, versioned) — numbered like ADRs: 001-core-library.md, 002-fastapi-server.md, etc. Pass the full numbered name to /design and /spec (e.g. /design 003-mcp-server)
 - feature_list.json: cross-session feature state — read every session start
 - claude-progress.txt: append-only session log — read every session start
-- specs/: active acceptance criteria and task DAGs — numbered like ADRs and feats: 001-core-library.md, 002-fastapi-server.md, etc. Pass the full numbered name to /spec (e.g. /spec 003-mcp-server)
+- docs/specs/: active acceptance criteria and task DAGs — numbered like ADRs and feats: 001-core-library.md, 002-fastapi-server.md, etc. Pass the full numbered name to /spec (e.g. /spec 003-mcp-server)
 - skills/: user-facing workflow skills shipped to researchers alongside scholartools.mcpb — DO NOT confuse with .claude/skills/ (dev workflow, not shipped)

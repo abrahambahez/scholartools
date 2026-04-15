@@ -51,12 +51,14 @@ Errors are transient — returned in the `MergeResult` but never persisted. A re
 
 ## duplicate detection
 
-A staged record is a duplicate if any of these match an existing library record:
+> **Updated in feat 006 (v0.7):** Duplicate detection is now uid-based. The normalized-title + ISBN logic described below has been replaced.
 
-- **Normalized title match** — strip diacritics, lowercase, remove `"'?` and punctuation, then exact string equality
-- **ISBN match** — same ISBN-10 or ISBN-13 (normalized, no hyphens)
+A staged record is a duplicate if its `uid` matches an existing library record's `uid`. UIDs are computed by `services/uid.py` using a tier-1 → tier-2 cascade:
 
-DOI is intentionally excluded: a book and its chapters share a DOI family but are distinct records.
+- **Tier 1 (authoritative):** `uid_confidence = "authoritative"` — derived from DOI, arXiv ID, or ISBN-13. Exact match only.
+- **Tier 2 (semantic):** `uid_confidence = "semantic"` — derived from a normalized title + first-author hash. Merge is gated on `allow_semantic=True` to prevent accidental promotions.
+
+UIDs are assigned once at `stage_reference()` time and never recomputed.
 
 ## decisions
 

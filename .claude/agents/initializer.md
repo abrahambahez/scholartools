@@ -1,7 +1,6 @@
 ---
 name: initializer
-description: First-run setup agent. Reads docs/product.md and generates
-  feature_list.json with all project features. Run once via /init.
+description: First-run setup agent. Reads docs/product.md and generates feature_list.json with all project features. Run once via /init.
 allowed-tools: Read, Write, Bash
 ---
 

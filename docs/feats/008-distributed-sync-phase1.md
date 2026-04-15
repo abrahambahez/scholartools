@@ -63,7 +63,7 @@ New module. Implements `StoragePort`. Holds a `LocalJsonAdapter` (existing) and 
 `RemoteSyncPort` instance. Services and the public API see only `StoragePort` — no
 sync-specific logic leaks upward.
 
-**push flow:**
+**push_changelog flow:**
 1. Call `merge()` to commit any local staged work.
 2. Collect all local `ChangeLogEntry` records not yet pushed (tracked by a local
    `sync_state.json` with the last pushed HLC fence).
@@ -72,7 +72,7 @@ sync-specific logic leaks upward.
    `changes/{peer_id}/{hlc_timestamp}.json` via `RemoteSyncPort.upload`.
 5. Update `sync_state.json` with the new fence.
 
-**pull flow:**
+**pull_changelog flow:**
 1. Load peer directory via `PeerDirectoryAdapter` (feat 007).
 2. List `changes/` keys newer than the last known pull fence via `RemoteSyncPort.list_keys`.
 3. Download and verify each entry (`verify_entry` from `services/peers.py`); write
@@ -119,9 +119,11 @@ unchanged.
 
 ### S3 adapter (`adapters/s3_sync.py`)
 
-Single adapter implementing `RemoteSyncPort` via `boto3`. Covers AWS S3, Backblaze B2,
+Single adapter implementing `RemoteSyncPort` via `minio>=7.0.0`. Covers AWS S3, Backblaze B2,
 and MinIO through endpoint override — no code changes per deployment, only config.
-`boto3` is a new dependency — requires approval before adding.
+`minio` is an optional dependency in the `sync` extras group (`pip install scholartools[sync]`).
+
+> **Changed in v0.9.1:** replaced `boto3`/`botocore` (~15 MB) with `minio` SDK (~500 KB) — same API surface, significantly lighter install.
 
 ### conflicts store (`adapters/conflicts_store.py`)
 
@@ -132,8 +134,8 @@ One JSON file per conflict, named `{uid}-{field}.json`.
 
 Six new sync wrappers:
 
-- `push() → PushResult`
-- `pull() → PullResult`
+- `push_changelog() → PushResult`
+- `pull_changelog() → PullResult`
 - `create_snapshot() → None`
 - `list_conflicts() → list[ConflictRecord]`
 - `resolve_conflict(uid, field, winning_value) → None`

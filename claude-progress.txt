@@ -436,5 +436,17 @@ decisions:
   - peers.py/sync.py/__init__.py use from scholartools.config import _config_dir, call _config_dir() at runtime
   - tests use monkeypatch.chdir(tmp_path) — cleaner than patching a module attribute; key paths now relative to tmp_path/.scholartools/
   - test_distributed_sync.py resolve_conflict test: removed unnecessary CONFIG_PATH patch (test manually reproduces logic, never calls _load_privkey)
+
+--- [2026-04-13] session docs-update ---
+completed:
+  - Analyzed current implementation vs all docs/feats/ entries
+  - 001-core-library.md v0.5→v0.6: updated Reference model (uid/uid_confidence/blob_ref/field_timestamps), FileRecord.path clarified as filename-only, public API updated (discover_references, get_reference uid param, file management section replaced), config updated (library_dir, apis.email, sources: OpenAlex/DOAJ replace Latindex), result types updated (LinkResult/UnlinkResult removed, Result/ReindexResult/UploadBlobsResult added), external sources table updated
+  - 002-staging-workflow.md: duplicate detection section updated to uid-based (references feat 006)
+  - 008-distributed-sync-phase1.md: push/pull → push_changelog/pull_changelog; S3 adapter note boto3→minio
+  - 009-blob-sync.md: superseded notice added; link_file/unlink_file rename notes; blob cache naming update; pull_changelog rename note; public API section updated
+  - docs/feats/003-list-pagination.md: new feat doc created
+  - docs/feats/021-file-management-refactor.md: new feat doc created (current file management API)
+pending: none
+decisions: none
 broken: none
 next: awaiting user instruction

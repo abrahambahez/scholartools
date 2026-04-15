@@ -5,7 +5,7 @@
 # HOW TO USE WITH CLAUDE CODE:
 # After implementing your first feature, say:
 #   "Help me write eval criteria for [feature] in evals/rubric.md.
-#    Base it on the acceptance criteria in specs/[feature].md"
+#    Base it on the acceptance criteria in docs/specs/[feature].md"
 #
 # Format per criterion:
 #   ## [criterion name]

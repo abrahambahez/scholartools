@@ -1,7 +1,7 @@
 ---
 name: spec
 description: Phase P of RPI. Produces the spec file for a feature.
-  Reads docs/feats/, agent research, writes specs/[NNN-feature].md.
+  Reads docs/feats/, agent research, writes docs/specs/[NNN-feature].md.
   Both feats and specs are numbered like ADRs — always pass the full
   numbered name (e.g. /spec 003-mcp-server).
 disable-model-invocation: true
@@ -11,7 +11,7 @@ Invoke the spec-writer skill for: $ARGUMENTS
 
 Context for spec-writer:
 - docs/feats/$ARGUMENTS.md (your canonical design thinking)
-- specs/$ARGUMENTS-findings.md (agent research, if it exists)
+- docs/specs/$ARGUMENTS-findings.md (agent research, if it exists)
 - docs/product.md (project scope)
 - docs/tech.md (constraints)
 

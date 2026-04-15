@@ -11,7 +11,7 @@ The architect will:
 - Map all files the change will touch
 - Identify cross-dependencies
 - Flag risks and open decisions
-- Write findings to specs/$ARGUMENTS-findings.md
+- Write findings to docs/specs/$ARGUMENTS-findings.md
 
 After the architect returns, present the findings to the user.
 Ask: "Do these findings look complete? Any missing files or dependencies?"

@@ -7,70 +7,70 @@
   {
     "id": "core-library",
     "title": "Core library — CRUD, file management, search, fetch, PDF extraction",
-    "spec": "specs/001-core-library.md",
+    "spec": "docs/specs/001-core-library.md",
     "passes": true,
     "notes": "86 tests passing. Full E2E workflow verified. Local adapter, 4 API clients, two-stage PDF extraction, public sync API wired."
   },
   {
     "id": "staging-workflow",
     "title": "Staging workflow — two-store model, merge/QA gate, duplicate detection",
-    "spec": "specs/002-staging-workflow.md",
+    "spec": "docs/specs/002-staging-workflow.md",
     "passes": true,
     "notes": "176 tests passing (unit + integration). Staging CRUD, merge pipeline, duplicate detection by normalized title/ISBN, file archival and cleanup, public sync API wired."
   },
   {
     "id": "list-pagination",
     "title": "List pagination — paginated, projected summary for all list endpoints",
-    "spec": "specs/016-list-pagination.md",
+    "spec": "docs/specs/016-list-pagination.md",
     "passes": true,
     "notes": "193 tests passing. ReferenceRow/FileRow projection, 10-record pages, citekey sort, merge file rename fix included."
   },
   {
     "id": "local-filter",
     "title": "Local filter — filter_references with predicate search + discover_references rename",
-    "spec": "specs/004-local-filter.md",
+    "spec": "docs/specs/004-local-filter.md",
     "passes": true,
     "notes": "210 tests passing. filter_references with query/author/year/ref_type/has_file/staging predicates. search_references renamed to discover_references. Sources updated: Latindex/SciELO removed (inaccessible), OpenAlex+DOAJ added, retry strategy (3 attempts, 5s delay) applied to all adapters, single apis.email config for polite-pool sources."
   },
   {
     "id": "configurable-citekeys",
     "title": "Configurable citekey generation — pattern/separator/etal/disambiguation_suffix via config.json",
-    "spec": "specs/005-configurable-citekeys.md",
+    "spec": "docs/specs/005-configurable-citekeys.md",
     "passes": true,
     "notes": "224 tests passing. CitekeySettings model with field validators; token evaluator for {author[N]}/{year}; title-word and letter disambiguation strategies."
   },
   {
     "id": "deduplication",
     "title": "Full deduplication — detect and resolve duplicate references beyond DOI matching",
-    "spec": "specs/006-deduplication.md",
+    "spec": "docs/specs/006-deduplication.md",
     "passes": true,
     "notes": "241 tests passing. uid-based record identity (tier-1: DOI/arXiv/ISBN authoritative; tier-2: semantic hash). compute_uid() in services/uid.py, uid written at staging, is_duplicate() uid-only, merge gates semantic confidence with allow_semantic=True, backfill_uid.py script."
   },
   {
     "id": "peer-management",
     "title": "Peer management — Ed25519 identity, peer registration, device lifecycle, pull-time verification",
-    "spec": "specs/008-peer-management.md",
+    "spec": "docs/specs/008-peer-management.md",
     "passes": true,
     "notes": "264 unit tests + 1 integration test passing. Ed25519 keypair generation, peer registration, device add/revoke, signature verification, pull verifier with rejection log. cryptography>=42.0 dep added."
   },
   {
     "id": "distributed-sync-phase1",
     "title": "Distributed sync phase 1 — append-only change log, push/pull, conflict resolution, S3-compatible backend",
-    "spec": "specs/017-distributed-sync-phase1.md",
+    "spec": "docs/specs/017-distributed-sync-phase1.md",
     "passes": true,
     "notes": "328 unit tests + 5 integration tests passing. HLC timestamps (services/hlc.py), ChangeLogEntry/ConflictRecord/PushResult/PullResult/SyncConfig models, S3 adapter (boto3 optional import), conflicts_store adapter, sync service (push/pull/create_snapshot), SyncCompositeAdapter (change log on every write), Settings.sync wiring, 6 public API functions (push/pull/create_snapshot/list_conflicts/resolve_conflict/restore_reference). _field_timestamps on Reference for per-field LWW tracking."
   },
   {
     "id": "blob-sync",
     "title": "Blob sync — content-addressed file distribution over S3",
-    "spec": "specs/009-blob-sync.md",
+    "spec": "docs/specs/009-blob-sync.md",
     "passes": true,
     "notes": "465 unit + integration tests passing. Superseded by 021-file-management-refactor: sync_file/unsync_file replace link_file/unlink_file, blob cache files include extension, get_file resolves relative paths."
   },
   {
     "id": "role-logic",
     "title": "Role logic — per-peer config identity and admin/contributor roles",
-    "spec": "specs/010-role-logic.md",
+    "spec": "docs/specs/010-role-logic.md",
     "passes": true,
     "notes": "387 unit + 18 integration tests passing (8 pre-existing boto3 failures unchanged). PeerSettings model, peer block in Settings/config validation, LibraryCtx.peer_id/device_id, _check_admin_role, peer_register_self, bootstrap script --role flag, remote-setup.md updated."
   },
@@ -107,42 +107,42 @@
   {
     "id": "local-file-progressive-enhancement",
     "title": "Local-first file ops — progressive enhancement stacking blob sync on local copy",
-    "spec": "specs/011-local-file-progressive-enhancement.md",
+    "spec": "docs/specs/011-local-file-progressive-enhancement.md",
     "passes": true,
     "notes": "Superseded by 021-file-management-refactor (v0.11.0). attach_file/detach_file/sync_file/unsync_file/reindex_files replace link_file/unlink_file. FileRecord.path stores filename only. 465 tests passing."
   },
   {
     "id": "file-management-refactor",
     "title": "File management refactor — explicit local/sync layers, relative paths, blob cache extensions",
-    "spec": "specs/021-file-management-refactor.md",
+    "spec": "docs/specs/021-file-management-refactor.md",
     "passes": true,
     "notes": "All 12 tasks complete. 465 unit + 5 integration tests passing. Four new public functions (attach_file, detach_file, sync_file, unsync_file), reindex_files repair command, FileRecord.path relative-only, blob cache {sha256}{ext} naming."
   },
   {
     "id": "cli",
     "title": "CLI for scholartools public API — scht command-line tool",
-    "spec": "specs/012-cli.md",
+    "spec": "docs/specs/012-cli.md",
     "passes": true,
     "notes": "480 tests passing. Full scht CLI covering refs, files, staging, discover, fetch, extract, sync, peers subcommand groups. All commands output JSON envelopes. scht entry point registered."
   },
   {
     "id": "mcp-server",
     "title": "MCP server — 7-tool Claude Desktop integration via scht-mcp and .mcpb bundle",
-    "spec": "specs/014-mcp-server.md",
+    "spec": "docs/specs/014-mcp-server.md",
     "passes": false,
-    "notes": "MCP support removed in v0.10.0. See specs/015-remove-mcp.md."
+    "notes": "MCP support removed in v0.10.0. See docs/specs/015-remove-mcp.md."
   },
   {
     "id": "cli-build",
     "title": "CLI build — PyInstaller standalone bundles for macOS, Linux, and Windows distribution",
-    "spec": "specs/018-cli-build.md",
+    "spec": "docs/specs/018-cli-build.md",
     "passes": true,
     "notes": "All 5 tasks complete. GitHub Actions matrix build on v* tags. Three platform zips + install.sh + install.ps1 as separate release assets. Version stamped from pyproject.toml. Smoke test (task-05) verified."
   },
   {
     "id": "skills-zip-distribution",
     "title": "Skills zip distribution — per-language skill zips with install scripts, change-gated CI release",
-    "spec": "specs/025-skills-zip-distribution.md",
+    "spec": "docs/specs/025-skills-zip-distribution.md",
     "passes": false
   },
   {

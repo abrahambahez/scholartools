@@ -1,5 +1,10 @@
 # 009: blob sync — content-addressed file distribution over S3
 
+> **Superseded in part by feat 021 (v0.11.0):** `link_file` and `unlink_file` were replaced
+> by `attach_file` / `detach_file` (local ops) + `sync_file` / `unsync_file` (S3 ops).
+> The blob storage format and sha256 content-addressing described here remain accurate;
+> the public API surface for triggering uploads has changed. See `docs/feats/021-file-management-refactor.md`.
+
 ## context
 
 Full design rationale is in `docs/rfc/001-distributed-sync.md` (phase 2 section).
@@ -85,7 +90,9 @@ participates in the same LWW as any other field.
 
 ### `link_file` upload flow (`services/sync.py`)
 
-`link_file(citekey, path) → Result` replaces the current local-only `link_file`:
+> **Renamed in v0.11.0:** `link_file` is replaced by `attach_file` (local copy) + `sync_file` (S3 upload). The upload logic described below now lives in `sync_file`.
+
+`link_file(citekey, path) → Result` (original design — see feat 021 for current API):
 
 1. Hash local file → `sha256` (streaming, no full read into memory)
 2. `s3_sync.exists(config, f"blobs/{sha256}")` — skip upload if already present
@@ -133,7 +140,9 @@ class PrefetchResult(BaseModel):
 
 ### `unlink_file` flow
 
-`unlink_file(citekey) → Result`:
+> **Renamed in v0.11.0:** `unlink_file` is replaced by `unsync_file` (clears blob_ref, writes log) + `detach_file` (deletes local copy). See feat 021.
+
+`unlink_file(citekey) → Result` (original design):
 
 1. Write `unlink_file` change log entry
 2. Clear `blob_ref` from local record
@@ -142,7 +151,7 @@ class PrefetchResult(BaseModel):
 Local cache file is not deleted — another record on the same peer may still reference the
 same sha256.
 
-### `pull_changelog()` changes (non-breaking)
+### `pull_changelog()` changes (non-breaking, renamed from `pull()` in v0.12.0)
 
 `pull_changelog()` already replays all change log ops by type. Two new branches:
 
@@ -156,7 +165,10 @@ many PDFs the shared index contains.
 ### blob cache layout (`config.py` / `Settings`)
 
 Cache directory: `{data_dir}/blob_cache/` — created on first write, no config needed.
-Files named by their sha256 hex with no extension. Not tracked by the change log.
+
+> **Changed in v0.11.0:** files are now named `{sha256}{ext}` (e.g. `e3b0c44….pdf`), not bare sha256. The extension is fetched from the `.meta` sidecar on download. Legacy no-extension cache files are evicted and re-downloaded on next access.
+
+Not tracked by the change log.
 
 Cache is local and disposable — peers can delete the entire directory and rebuild on next
 `get_file` or `prefetch_blobs`.
@@ -173,14 +185,15 @@ One new function required:
 
 ### public API (`__init__.py`)
 
-Changes to existing functions:
+> **Updated in v0.11.0:** see feat 021 for the current public API. The functions below were the original design.
 
-- `link_file(citekey, path)` — gains upload step (signature unchanged)
-- `get_file(citekey)` — gains lazy fetch step (signature unchanged)
+Original functions (v0.9.x):
+- `link_file(citekey, path)` — hash + conditional S3 upload + set blob_ref (now: `sync_file`)
+- `get_file(citekey)` — lazy fetch from S3 cache (unchanged signature)
+- `prefetch_blobs(citekeys: list[str] | None = None) → PrefetchResult` (unchanged)
 
-New functions:
-
-- `prefetch_blobs(citekeys: list[str] | None = None) → PrefetchResult`
+Added in v0.11.0:
+- `upload_blobs() → UploadBlobsResult` — bulk-upload all locally attached files that lack `blob_ref`
 
 ## design decisions
 

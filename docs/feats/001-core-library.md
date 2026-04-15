@@ -1,6 +1,6 @@
 # feat: core library — MVP
 
-version: 0.5
+version: 0.6
 status: current
 
 ## what this is
@@ -19,8 +19,8 @@ In:
 - Local adapter: reads/writes `data/library.json`, manages `data/files/`
 - CRUD service: add, get, update, delete, list references
 - Citekey service: generate and assign citekeys on add
-- File service: link, unlink, move, list files for a reference
-- Search service: keyword search across Semantic Scholar, ArXiv, Latindex, Crossref
+- File service: attach, detach, sync, unsync, move, list, reindex files for a reference
+- Search service: keyword search across Crossref, Semantic Scholar, arXiv, OpenAlex, DOAJ, Google Books
 - Fetch service: fetch full record by identifier (DOI, arXiv ID, ISSN, etc.)
 - Extract service: extract metadata from a local PDF or EPUB
 - All result types
@@ -50,7 +50,7 @@ Pydantic models are data containers — compatible with functional style. No met
 
 ```python
 class Reference(BaseModel):
-    model_config = ConfigDict(extra="allow")  # pass through unknown CSL-JSON fields
+    model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     id: str                          # citekey — unique within the library
     type: str                        # CSL type: "article-journal", "book", etc.
@@ -59,10 +59,20 @@ class Reference(BaseModel):
     issued: DateField | None = None
     DOI: str | None = None
     URL: str | None = None
+    added_at: datetime | None = None
     # ... all other CSL-JSON fields via extra="allow"
 
-    _file: FileRecord | None = None  # scholartools metadata, not a CSL-JSON field
-    _warnings: list[str] = []        # populated on read if required fields missing
+    # scholartools identity fields (populated at stage time via services/uid.py)
+    uid: str | None = None
+    uid_confidence: Literal["authoritative", "semantic"] | None = None
+
+    # blob sync (set by sync_file; None for local-only records)
+    blob_ref: str | None = None      # "sha256:{hex}" or None
+
+    # scholartools private fields (stored with underscore aliases)
+    file_record: FileRecord | None = Field(None, alias="_file")
+    warnings: list[str] = Field(default_factory=list, alias="_warnings")
+    field_timestamps: dict[str, str] = Field(default_factory=dict, alias="_field_timestamps")
 ```
 
 Required fields for a *complete* reference: `id`, `type`, `title`, `author`, `issued`.
@@ -72,11 +82,13 @@ Missing any of these → `_warnings` populated, record still returned.
 
 ```python
 class FileRecord(BaseModel):
-    path: str        # absolute path, always named {citekey}.{ext}
+    path: str        # filename only — e.g. "graeber2017.pdf"; never an absolute path
     mime_type: str   # "application/pdf" or "application/epub+zip"
     size_bytes: int
     added_at: str    # ISO 8601
 ```
+
+The library dir is always `~/.local/share/scholartools` (configurable via `local.library_dir`). Files live at `{library_dir}/files/{path}`. Storing only the filename allows the library to be relocated without invalidating records.
 
 ### ReferenceRow — list projection
 
@@ -89,6 +101,7 @@ class ReferenceRow(BaseModel):
     authors: str | None = None   # "Family, Given; Family, Given[; et al.]" — up to 5, then et al.
     year: int | None = None
     doi: str | None = None
+    uid: str | None = None
     has_file: bool = False
     has_warnings: bool = False   # True if any required field is missing
 ```
@@ -112,31 +125,40 @@ On first use: created automatically as `[]`. `data/files/` created automatically
 
 ## config
 
-Config discovery order: `SCHOLARTOOLS_CONFIG` env var → `.scholartools/config.json` (project-local) → `~/.config/scholartools/config.json` (global). Falls back to built-in defaults if none found.
+Config file path: `~/.config/scholartools/config.json`. Auto-created with defaults on first run.
 
 ```json
 {
   "backend": "local",
   "local": {
-    "library_path": "data/library.json",
-    "files_dir": "data/files"
+    "library_dir": "~/.local/share/scholartools"
   },
   "apis": {
+    "email": null,
     "sources": [
-      {"name": "latindex",          "enabled": true,  "api_key": null},
-      {"name": "crossref",          "enabled": true,  "api_key": null, "email": null},
-      {"name": "semantic_scholar",  "enabled": true,  "api_key": null},
-      {"name": "arxiv",             "enabled": true,  "api_key": null}
+      {"name": "crossref",         "enabled": true},
+      {"name": "semantic_scholar", "enabled": true},
+      {"name": "arxiv",            "enabled": true},
+      {"name": "openalex",         "enabled": true},
+      {"name": "doaj",             "enabled": true},
+      {"name": "google_books",     "enabled": true}
     ]
   },
   "llm": {
-    "model": "claude-sonnet-4-6",
-    "anthropic_api_key": null
+    "model": "claude-sonnet-4-6"
+  },
+  "citekey": {
+    "pattern": "{author[2]}{year}",
+    "separator": "_",
+    "etal": "_etal",
+    "disambiguation_suffix": "letters"
   }
 }
 ```
 
-`anthropic_api_key` falls back to `ANTHROPIC_API_KEY` env var. `null` values mean use free/unauthenticated access where available.
+`apis.email` is used for Crossref polite-pool and OpenAlex; set to a real address to avoid throttling. `ANTHROPIC_API_KEY` env var enables LLM fallback in PDF extraction. `SEMANTIC_SCHOLAR_API_KEY` and `GBOOKS_API_KEY` env vars unlock higher rate limits for those sources.
+
+Computed paths (not in config): `{library_dir}/library.json`, `{library_dir}/files/`, `{library_dir}/staging.json`, `{library_dir}/staging/`, `{library_dir}/peers/`.
 
 ## style
 
@@ -162,7 +184,7 @@ All functions are sync. All return Result models. None raise.
 
 ```python
 add_reference(ref: dict) -> AddResult
-get_reference(citekey: str) -> GetResult
+get_reference(citekey: str | None = None, uid: str | None = None) -> GetResult
 update_reference(citekey: str, fields: dict) -> UpdateResult
 rename_reference(old_key: str, new_key: str) -> RenameResult
 delete_reference(citekey: str) -> DeleteResult
@@ -172,19 +194,30 @@ list_references(page: int = 1) -> ListResult   # sorted by citekey, 10/page
 ### Search and fetch
 
 ```python
-search_references(query: str, sources: list[str] | None = None, limit: int = 10) -> SearchResult
+discover_references(query: str, sources: list[str] | None = None, limit: int = 10) -> SearchResult
 fetch_reference(identifier: str) -> FetchResult
 ```
 
-`sources` defaults to all configured APIs. `identifier` is any of: DOI, arXiv ID, ISSN, PubMed ID — the service auto-detects type.
+`sources` defaults to all configured APIs. `identifier` is any of: DOI, arXiv ID, ISBN, ISSN — the service auto-detects type.
 
 ### File management
 
+File operations are split into two explicit layers: local (copy/delete) and sync (S3 upload/clear):
+
 ```python
-link_file(citekey: str, file_path: str) -> LinkResult
-unlink_file(citekey: str) -> UnlinkResult
-move_file(citekey: str, dest_name: str) -> MoveResult
-list_files(page: int = 1) -> FilesListResult   # sorted by citekey, 10/page
+# local operations — no S3 side effects
+attach_file(citekey: str, path: str) -> Result          # copy to files/, register filename
+detach_file(citekey: str) -> Result                      # delete local copy, clear _file; blocked if blob_ref set
+move_file(citekey: str, dest_name: str) -> MoveResult   # rename within files/
+list_files(page: int = 1) -> FilesListResult             # sorted by citekey, 10/page
+reindex_files() -> ReindexResult                         # repair stale absolute paths after library folder move
+
+# sync operations — require sync block in config
+sync_file(citekey: str) -> Result                        # hash → HEAD check → S3 upload → set blob_ref
+unsync_file(citekey: str) -> Result                      # clear blob_ref, write unlink_file log; local file intact
+get_file(citekey: str) -> Path | None                    # local path if present; S3 download if blob_ref set
+prefetch_blobs(citekeys: list[str] | None = None) -> PrefetchResult   # pre-download blobs for offline use
+upload_blobs() -> UploadBlobsResult                      # upload all locally-attached files that lack blob_ref
 ```
 
 ### PDF/EPUB extraction
@@ -251,15 +284,6 @@ class ExtractResult(BaseModel):
     confidence: float | None = None   # 0.0–1.0
     error: str | None = None
 
-class LinkResult(BaseModel):
-    citekey: str | None = None
-    file_record: FileRecord | None = None
-    error: str | None = None
-
-class UnlinkResult(BaseModel):
-    unlinked: bool
-    error: str | None = None
-
 class MoveResult(BaseModel):
     new_path: str | None = None
     error: str | None = None
@@ -269,6 +293,26 @@ class FilesListResult(BaseModel):
     total: int
     page: int
     pages: int
+
+class Result(BaseModel):
+    ok: bool = True
+    error: str | None = None
+
+class ReindexResult(BaseModel):
+    repaired: int
+    already_ok: int
+    not_found: int
+
+class PrefetchResult(BaseModel):
+    fetched: int
+    already_cached: int
+    errors: list[str]
+
+class UploadBlobsResult(BaseModel):
+    uploaded: int
+    skipped: int
+    failed: int
+    errors: list[str]
 ```
 
 ## external API sources
@@ -277,17 +321,18 @@ Sources are declared in `config.json` as an ordered list. Order defines search p
 
 Default order:
 
-| Priority | Source           | Identifier support        | Auth required      |
-|----------|------------------|---------------------------|--------------------|
-| 1        | Crossref         | DOI, keyword              | email (polite)     |
-| 2        | Semantic Scholar | DOI, S2 ID, keyword       | API key (optional) |
-| 3        | ArXiv            | arXiv ID, keyword         | none               |
-| 4        | Latindex         | ISSN, keyword             | none               |
-| 5        | Google Books     | ISBN                      | API key (optional) |
+| Priority | Source           | Identifier support        | Auth required              |
+|----------|------------------|---------------------------|----------------------------|
+| 1        | Crossref         | DOI, keyword              | email (polite pool)        |
+| 2        | Semantic Scholar | DOI, S2 ID, keyword       | API key (optional)         |
+| 3        | ArXiv            | arXiv ID, keyword         | none                       |
+| 4        | OpenAlex         | DOI, keyword              | email (polite pool)        |
+| 5        | DOAJ             | ISSN, keyword             | none                       |
+| 6        | Google Books     | ISBN                      | API key (`GBOOKS_API_KEY`) |
 
-`search_references` fans out across all enabled sources concurrently (httpx async). Results are normalized to `Reference`, ordered by source priority, and deduplicated by DOI before returning (DOI as dedup key only — full dedup is a separate feature).
+`discover_references` fans out across all enabled sources concurrently (httpx async). Results are normalized to `Reference`, ordered by source priority, and deduplicated by DOI before returning (DOI as dedup key only — full dedup is in feat 006).
 
-Future sources (progressive, on demand): PubMed, CORE, BASE, DOAJ, Redalyc, SciELO.
+All sources apply a retry strategy (3 attempts, 5 s delay) to handle transient API failures.
 
 ## PDF extraction pipeline
 
@@ -300,9 +345,10 @@ The agent decides whether to call `add_reference` with the result.
 
 ## local adapter behavior
 
-- Auto-creates `data/library.json` (`[]`) and `data/files/` on first write if missing
+- Auto-creates `{library_dir}/library.json` (`[]`) and `{library_dir}/files/` on first write if missing
 - Reads: load full JSON, validate, return with warnings if fields missing
-- Writes: atomic — write to `data/.library.tmp.json`, rename to `data/library.json`
-- `link_file`: copies source file into `data/files/{citekey}.{ext}`, does not delete original
-- `move_file`: renames within `data/files/` only
-- `unlink_file`: removes the `_file` record from the reference, deletes the file from `data/files/`
+- Writes: atomic — write to `.library.tmp.json`, rename to `library.json`
+- `attach_file`: copies source file into `{library_dir}/files/{citekey}.{ext}`, does not delete original; stores filename only in `FileRecord.path`
+- `detach_file`: removes `_file` record, deletes file from `files/`; fails if `blob_ref` is set (call `unsync_file` first)
+- `move_file`: renames within `files/` only; updates `FileRecord.path`
+- `reindex_files`: repairs stale absolute paths (from pre-0.11.0 records) to filename-only format
