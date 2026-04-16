@@ -14,6 +14,7 @@ from loretools.models import (
     DetachResult,
     ExtractResult,
     FilesListResult,
+    GetFileResult,
     GetResult,
     LibraryCtx,
     ListResult,
@@ -150,8 +151,9 @@ def detach_file(citekey: str) -> DetachResult:
     return _run(files.detach_file(_get_ctx(), citekey))
 
 
-def get_file(citekey: str):
-    return _run(files.get_file(_get_ctx(), citekey))
+def get_file(citekey: str) -> GetFileResult:
+    path = _run(files.get_file(_get_ctx(), citekey))
+    return GetFileResult(path=str(path) if path is not None else None)
 
 
 def reindex_files() -> ReindexResult:

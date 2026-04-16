@@ -186,6 +186,11 @@ class DetachResult(BaseModel):
     error: str | None = None
 
 
+class GetFileResult(BaseModel):
+    path: str | None = None
+    error: str | None = None
+
+
 class MoveResult(BaseModel):
     new_path: str | None = None
     error: str | None = None

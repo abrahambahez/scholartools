@@ -34,12 +34,6 @@ def _build_parser() -> argparse.ArgumentParser:
         description="loretools CLI",
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {version}")
-    parser.add_argument(
-        "--plain",
-        action="store_true",
-        default=False,
-        help="human-readable output instead of JSON",
-    )
 
     subparsers = parser.add_subparsers(dest="group", metavar="group")
 
@@ -61,13 +55,8 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> None:
-    pre = argparse.ArgumentParser(add_help=False)
-    pre.add_argument("--plain", action="store_true", default=False)
-    pre_args, remaining = pre.parse_known_args()
-
     parser = _build_parser()
-    args = parser.parse_args(remaining)
-    args.plain = pre_args.plain
+    args = parser.parse_args()
 
     if args.group is None:
         parser.print_help()

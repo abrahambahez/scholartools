@@ -7,42 +7,17 @@ from loretools.cli._fmt import exit_result, read_arg
 from loretools.models import Result
 
 
-def _fmt_table(rows) -> str:
-    header = f"{'citekey':<20} {'title':<50} {'authors':<30} {'year':<6} {'type':<15}"
-    sep = "-" * len(header)
-    lines = [header, sep]
-    for r in rows:
-        title = (r.title or "")[:50]
-        authors = (r.authors or "")[:30]
-        year = str(r.year) if r.year else ""
-        ref_type = getattr(r, "ref_type", "") or ""
-        lines.append(
-            f"{r.citekey:<20} {title:<50} {authors:<30} {year:<6} {ref_type:<15}"
-        )
-    return "\n".join(lines)
-
-
 def _add(args: argparse.Namespace) -> None:
     raw = read_arg(args.json, stdin=sys.stdin)
     try:
         ref_dict = json.loads(raw)
     except json.JSONDecodeError as e:
-        exit_result(Result(ok=False, error=str(e)), plain=False)
-    try:
-        result = loretools.add_reference(ref_dict)
-    except Exception as e:
-        exit_result(Result(ok=False, error=str(e)), plain=False)
-    exit_result(result, args.plain)
+        exit_result(Result(ok=False, error=str(e)))
+    exit_result(loretools.add_reference(ref_dict))
 
 
 def _get(args: argparse.Namespace) -> None:
-    try:
-        result = loretools.get_reference(
-            citekey=args.citekey, uid=getattr(args, "uid", None)
-        )
-    except Exception as e:
-        exit_result(Result(ok=False, error=str(e)), plain=False)
-    exit_result(result, args.plain)
+    exit_result(loretools.get_reference(citekey=args.citekey, uid=getattr(args, "uid", None)))
 
 
 def _update(args: argparse.Namespace) -> None:
@@ -50,58 +25,32 @@ def _update(args: argparse.Namespace) -> None:
     try:
         fields = json.loads(raw)
     except json.JSONDecodeError as e:
-        exit_result(Result(ok=False, error=str(e)), plain=False)
-    try:
-        result = loretools.update_reference(args.citekey, fields)
-    except Exception as e:
-        exit_result(Result(ok=False, error=str(e)), plain=False)
-    exit_result(result, args.plain)
+        exit_result(Result(ok=False, error=str(e)))
+    exit_result(loretools.update_reference(args.citekey, fields))
 
 
 def _rename(args: argparse.Namespace) -> None:
-    try:
-        result = loretools.rename_reference(args.old, args.new)
-    except Exception as e:
-        exit_result(Result(ok=False, error=str(e)), plain=False)
-    exit_result(result, args.plain)
+    exit_result(loretools.rename_reference(args.old, args.new))
 
 
 def _delete(args: argparse.Namespace) -> None:
-    try:
-        result = loretools.delete_reference(args.citekey)
-    except Exception as e:
-        exit_result(Result(ok=False, error=str(e)), plain=False)
-    exit_result(result, args.plain)
+    exit_result(loretools.delete_reference(args.citekey))
 
 
 def _list(args: argparse.Namespace) -> None:
-    try:
-        result = loretools.list_references(page=args.page)
-    except Exception as e:
-        exit_result(Result(ok=False, error=str(e)), plain=False)
-    if args.plain:
-        print(_fmt_table(result.references))
-        sys.exit(0)
-    exit_result(result, args.plain)
+    exit_result(loretools.list_references(page=args.page))
 
 
 def _filter(args: argparse.Namespace) -> None:
-    try:
-        result = loretools.filter_references(
-            query=args.query,
-            author=args.author,
-            year=int(args.year) if args.year else None,
-            ref_type=getattr(args, "type", None),
-            has_file=True if args.has_file else None,
-            staging=args.staging,
-            page=args.page,
-        )
-    except Exception as e:
-        exit_result(Result(ok=False, error=str(e)), plain=False)
-    if args.plain:
-        print(_fmt_table(result.references))
-        sys.exit(0)
-    exit_result(result, args.plain)
+    exit_result(loretools.filter_references(
+        query=args.query,
+        author=args.author,
+        year=int(args.year) if args.year else None,
+        ref_type=getattr(args, "type", None),
+        has_file=True if args.has_file else None,
+        staging=args.staging,
+        page=args.page,
+    ))
 
 
 def register(sub: argparse.ArgumentParser) -> None:

@@ -11,56 +11,22 @@ def _stage(args: argparse.Namespace) -> None:
     try:
         ref_dict = json.loads(raw)
     except json.JSONDecodeError as exc:
-        print(
-            json.dumps({"ok": False, "data": None, "error": str(exc)}),
-            file=sys.stdout,
-        )
+        print(json.dumps({"error": str(exc)}))
         sys.exit(1)
-    try:
-        result = loretools.stage_reference(ref_dict, file_path=args.file)
-    except Exception as e:
-        print(json.dumps({"ok": False, "data": None, "error": str(e)}))
-        sys.exit(1)
-    exit_result(result, args.plain)
+    exit_result(loretools.stage_reference(ref_dict, file_path=args.file))
 
 
 def _list_staged(args: argparse.Namespace) -> None:
-    try:
-        result = loretools.list_staged(page=args.page)
-    except Exception as e:
-        print(json.dumps({"ok": False, "data": None, "error": str(e)}))
-        sys.exit(1)
-    if args.plain and hasattr(result, "references"):
-        rows = result.references
-        header = f"{'citekey':<20} {'title':<40} {'authors':<30} {'year':<6}"
-        lines = [header]
-        for r in rows:
-            title = (r.title or "")[:40]
-            authors = (r.authors or "")[:30]
-            year = str(r.year) if r.year else ""
-            lines.append(f"{r.citekey:<20} {title:<40} {authors:<30} {year:<6}")
-        print("\n".join(lines))
-        sys.exit(0)
-    exit_result(result, args.plain)
+    exit_result(loretools.list_staged(page=args.page))
 
 
 def _delete_staged(args: argparse.Namespace) -> None:
-    try:
-        result = loretools.delete_staged(args.citekey)
-    except Exception as e:
-        print(json.dumps({"ok": False, "data": None, "error": str(e)}))
-        sys.exit(1)
-    exit_result(result, args.plain)
+    exit_result(loretools.delete_staged(args.citekey))
 
 
 def _merge(args: argparse.Namespace) -> None:
     omit = [k.strip() for k in args.omit.split(",")] if args.omit else None
-    try:
-        result = loretools.merge(omit=omit, allow_semantic=args.allow_semantic)
-    except Exception as e:
-        print(json.dumps({"ok": False, "data": None, "error": str(e)}))
-        sys.exit(1)
-    exit_result(result, args.plain)
+    exit_result(loretools.merge(omit=omit, allow_semantic=args.allow_semantic))
 
 
 def register(sub: argparse.ArgumentParser) -> None:

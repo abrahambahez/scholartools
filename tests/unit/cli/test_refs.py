@@ -30,19 +30,16 @@ def test_refs_add_valid_json(capsys):
             _run(["refs", "add", '{"title": "A"}'])
         assert exc_info.value.code == 0
         mock_add.assert_called_once_with({"title": "A"})
-        out = capsys.readouterr().out
-        data = json.loads(out)
-        assert data["ok"] is True
-        assert data["data"]["citekey"] == "key1"
+        data = json.loads(capsys.readouterr().out)
+        assert data["citekey"] == "key1"
+        assert data["error"] is None
 
 
 def test_refs_add_invalid_json(capsys):
     with pytest.raises(SystemExit) as exc_info:
         _run(["refs", "add", "not-json"])
     assert exc_info.value.code == 1
-    out = capsys.readouterr().out
-    data = json.loads(out)
-    assert data["ok"] is False
+    data = json.loads(capsys.readouterr().out)
     assert data["error"] is not None
 
 
@@ -90,9 +87,8 @@ def test_refs_update_invalid_json(capsys):
     with pytest.raises(SystemExit) as exc_info:
         _run(["refs", "update", "key1", "bad-json"])
     assert exc_info.value.code == 1
-    out = capsys.readouterr().out
-    data = json.loads(out)
-    assert data["ok"] is False
+    data = json.loads(capsys.readouterr().out)
+    assert data["error"] is not None
 
 
 def test_refs_rename_calls_rename_reference():
@@ -121,25 +117,10 @@ def test_refs_list_json_output(capsys):
             _run(["refs", "list"])
         assert exc_info.value.code == 0
         mock_list.assert_called_once_with(page=1)
-        out = capsys.readouterr().out
-        data = json.loads(out)
-        assert "data" in data
-        assert "page_info" in data
-
-
-def test_refs_list_plain_output(capsys):
-    rows = [ReferenceRow(citekey="k1", title="Title", authors="Auth", year=2020)]
-    result = ListResult(references=rows, total=1, page=1)
-    with patch("loretools.list_references", return_value=result):
-        with pytest.raises(SystemExit) as exc_info:
-            _run(["--plain", "refs", "list"])
-        assert exc_info.value.code == 0
-        out = capsys.readouterr().out
-        assert "k1" in out
-        assert "Title" in out
-        # must not be JSON
-        with pytest.raises((json.JSONDecodeError, ValueError)):
-            json.loads(out)
+        data = json.loads(capsys.readouterr().out)
+        assert "references" in data
+        assert data["total"] == 1
+        assert data["references"][0]["citekey"] == "k1"
 
 
 def test_refs_list_page_arg():
@@ -186,15 +167,14 @@ def test_refs_filter_all_args(capsys):
         )
 
 
-def test_refs_filter_plain_output(capsys):
+def test_refs_filter_json_output(capsys):
     rows = [
         ReferenceRow(citekey="k2", title="Some Title", authors="Author X", year=2022)
     ]
     result = ListResult(references=rows, total=1, page=1)
     with patch("loretools.filter_references", return_value=result):
         with pytest.raises(SystemExit) as exc_info:
-            _run(["--plain", "refs", "filter", "--query", "test"])
+            _run(["refs", "filter", "--query", "test"])
         assert exc_info.value.code == 0
-        out = capsys.readouterr().out
-        assert "k2" in out
-        assert "Some Title" in out
+        data = json.loads(capsys.readouterr().out)
+        assert data["references"][0]["citekey"] == "k2"

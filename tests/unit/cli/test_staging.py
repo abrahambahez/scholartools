@@ -41,9 +41,7 @@ def test_stage_invalid_json_outputs_error(capsys):
     with pytest.raises(SystemExit) as exc_info:
         _run(["staging", "stage", "not-json"])
     assert exc_info.value.code == 1
-    out = capsys.readouterr().out
-    data = json.loads(out)
-    assert data["ok"] is False
+    data = json.loads(capsys.readouterr().out)
     assert data["error"] is not None
 
 
@@ -56,23 +54,17 @@ def test_list_staged_calls_list_staged():
         mock.assert_called_once_with(page=1)
 
 
-def test_list_staged_plain_produces_table(capsys):
+def test_list_staged_json_output(capsys):
     row = ReferenceRow(
         citekey="abc2020", title="Some Title", authors="Doe, J.", year=2020
     )
     result = ListStagedResult(references=[row], total=1, page=1, pages=1)
     with patch("loretools.list_staged", return_value=result):
         with pytest.raises(SystemExit) as exc_info:
-            _run(["--plain", "staging", "list-staged"])
+            _run(["staging", "list-staged"])
         assert exc_info.value.code == 0
-        out = capsys.readouterr().out
-        assert "abc2020" in out
-        assert "Some Title" in out
-        try:
-            json.loads(out)
-            assert False, "Expected non-JSON output"
-        except json.JSONDecodeError:
-            pass
+        data = json.loads(capsys.readouterr().out)
+        assert data["references"][0]["citekey"] == "abc2020"
 
 
 def test_delete_staged_calls_delete_staged():

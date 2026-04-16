@@ -1,79 +1,31 @@
 import argparse
-import json
-import os
-import sys
 
 import loretools
 from loretools.cli._fmt import exit_result
-from loretools.models import Result
 
 
 def _attach(args: argparse.Namespace) -> None:
-    try:
-        result = loretools.attach_file(args.citekey, args.path)
-    except Exception as e:
-        exit_result(Result(ok=False, error=str(e)), plain=False)
-    exit_result(result, args.plain)
+    exit_result(loretools.attach_file(args.citekey, args.path))
 
 
 def _detach(args: argparse.Namespace) -> None:
-    try:
-        result = loretools.detach_file(args.citekey)
-    except Exception as e:
-        exit_result(Result(ok=False, error=str(e)), plain=False)
-    exit_result(result, args.plain)
+    exit_result(loretools.detach_file(args.citekey))
 
 
 def _reindex(args: argparse.Namespace) -> None:
-    try:
-        r = loretools.reindex_files()
-    except Exception as e:
-        print(json.dumps({"ok": False, "data": None, "error": str(e)}))
-        sys.exit(1)
-    print(
-        f"Repaired: {r.repaired}, already ok: {r.already_ok}, not found: {r.not_found}"
-    )
-    sys.exit(0)
+    exit_result(loretools.reindex_files())
 
 
 def _get(args: argparse.Namespace) -> None:
-    try:
-        result = loretools.get_file(args.citekey)
-    except Exception as e:
-        print(json.dumps({"ok": False, "data": None, "error": str(e)}))
-        sys.exit(1)
-    print(
-        json.dumps({"ok": True, "data": str(result) if result else None, "error": None})
-    )
-    sys.exit(0)
+    exit_result(loretools.get_file(args.citekey))
 
 
 def _move(args: argparse.Namespace) -> None:
-    try:
-        result = loretools.move_file(args.citekey, args.dest_name)
-    except Exception as e:
-        exit_result(Result(ok=False, error=str(e)), plain=False)
-    exit_result(result, args.plain)
+    exit_result(loretools.move_file(args.citekey, args.dest_name))
 
 
 def _list(args: argparse.Namespace) -> None:
-    try:
-        result = loretools.list_files(page=args.page)
-    except Exception as e:
-        exit_result(Result(ok=False, error=str(e)), plain=False)
-    if args.plain:
-        rows = result.files
-        col_w = 20
-        header = f"{'citekey':<{col_w}}  {'filename':<{col_w}}  size"
-        lines = [header]
-        for row in rows:
-            filename = os.path.basename(row.path)
-            lines.append(
-                f"{row.citekey:<{col_w}}  {filename:<{col_w}}  {row.size_bytes}"
-            )
-        print("\n".join(lines))
-        sys.exit(0)
-    exit_result(result, args.plain)
+    exit_result(loretools.list_files(page=args.page))
 
 
 def register(sub: argparse.ArgumentParser) -> None:
