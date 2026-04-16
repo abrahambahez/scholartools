@@ -1,5 +1,8 @@
 # 005 — Configurable Citekey Generation
 
+version: 0.1
+status: current
+
 ## Problem
 
 Citekey format is hardcoded. Researchers have existing conventions — in Zotero, JabRef, or their own vaults — that differ from the scholartools default. There is no way to adapt generation without touching source code.

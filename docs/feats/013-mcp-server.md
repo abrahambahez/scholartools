@@ -3,7 +3,7 @@
 version: 0.2
 status: deprecated
 
-> **Deprecated (2026-03-19):** MCP support is being removed. The test surface was too brittle for researchers and the integration added maintenance cost without clear user benefit. MCP-based agent access will be reconsidered in a future iteration with a cleaner integration model. See docs/specs/015-remove-mcp.md.
+> **Deprecated (2026-03-19):** MCP support was removed. The test surface was too brittle for researchers and the integration added maintenance cost without clear user benefit. The tool design described here (7-tool workflow layout, auto-staging on discovery) is preserved as the reference for a future MCP integration. Note that several tools in this design (`discover`, `fetch`, `ingest_file` with LLM fallback) depended on the external search and LLM stacks that were also removed in v0.13.0 (spec 027) — any future MCP server must be updated to reflect the plugin architecture where search and LLM live outside core.
 
 ## what this is
 

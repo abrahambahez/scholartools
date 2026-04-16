@@ -1,5 +1,8 @@
 # 006: deduplication — uid-based record identity
 
+version: 0.1
+status: current
+
 ## context
 
 The uid design is specified in full in `docs/rfc/001-distributed-sync.md` (record identity section). This feat covers what changes in the codebase to implement it: model, generation, and dedup.

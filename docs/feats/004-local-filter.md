@@ -1,21 +1,17 @@
-# feat 004: local filter and discover rename
+# feat 004: local filter
 
-version: 0.1
+version: 0.2
 status: current
 
 ## problem
 
-Agents operating on the local library have no way to search or filter it. Every use case that involves "find X in my library" today requires either iterating all paginated results or knowing the citekey in advance. There is also a naming ambiguity: `search_references` sounds like it searches the local library, but it fans out to external APIs. This can confuses agents.
+Agents operating on the local library had no way to search or filter it without iterating all paginated results or knowing the citekey in advance.
 
-## two distinct operations
-
-**Discover** (external): query Crossref, Semantic Scholar, arXiv, etc. Returns candidate `Reference` objects not yet in the library.
-
-**Filter** (local): scan the library file and return matching rows. Pure in-process operation. No network.
-
-Renaming `search_references` → `discover_references` makes the boundary explicit in the public API.
+An earlier version of this feat also renamed `search_references` → `discover_references` to clarify the external-API/local-filter boundary. That rename is now moot: `discover_references` and the entire external search stack were removed in v0.13.0 (spec 027) as part of enforcing the portability invariant. External discovery belongs in a future `loretools-search` plugin.
 
 ## filter design
+
+`filter_references` scans the local library and returns matching rows. It is a pure in-process operation with no network calls.
 
 Four orthogonal predicates, all optional, all ANDed:
 
@@ -29,36 +25,34 @@ Four orthogonal predicates, all optional, all ANDed:
 
 No params → returns full library (equivalent to `list_references`).
 
+`filter_references(staging=True)` routes all predicates to `ctx.staging_read_all` instead of `ctx.read_all`, returning staged candidates.
+
 Returns `ListResult` (paginated `ReferenceRow`). No new models.
-
-## why not projection / include / exclude
-
-Projection adds a variable-schema result that cannot be expressed in the existing `ListResult` / `ReferenceRow` types without a union or `dict` return. The token-saving use case is already largely covered: `ListResult` returns slim `ReferenceRow` rows; agents that need full fields call `get_reference` per citekey. Projection is deferred to a future feature or handled externally with jq.
 
 ## performance
 
 The local adapter loads the entire library into memory on every call (`read_all`). Filter is O(n) Python over the loaded list. For any realistic library size (< 50k records), this is instantaneous. No indexing required.
 
-## cloud backend contract
+## proposed: external discovery
 
-`filter_references` in `__init__.py` calls a service function that receives a `FilterQuery` typed dict through `LibraryCtx`. Each backend adapter translates it to its own query syntax (MongoDB `$regex`, DynamoDB scan + filter, etc.). The local adapter implements it as pure Python predicates.
+> **status: proposed** — External discovery (Crossref, Semantic Scholar, arXiv, OpenAlex, DOAJ, Google Books) was removed from core in v0.13.0. It will be re-introduced as a `loretools-search` plugin that imports `httpx` and does not ship with the core package.
 
-This is out of scope for this feature — cloud backends don't exist yet. The service layer is written so the local implementation is the authoritative reference for what cloud adapters must replicate.
+The planned public function was:
 
-## what changes
+```python
+discover_references(query: str, sources: list[str] | None = None, limit: int = 10) -> SearchResult
+```
 
-1. `services/search.py` → rename function `search_references` to `discover_references`
-2. `__init__.py` → rename public function `search_references` → `discover_references`
-3. `services/store.py` → add `filter_references(query, author, year, ref_type, has_file, page, ctx)`
-4. `__init__.py` → add `filter_references(...)` sync wrapper
-5. `models.py` → no changes (reuse `ListResult`)
+And by identifier:
 
-## staging scope
+```python
+fetch_reference(identifier: str) -> FetchResult
+```
 
-`filter_references(staging=True)` routes all predicates to `ctx.staging_read_all` instead of `ctx.read_all`. The return type is `ListResult` in both cases — `ListStagedResult` is structurally identical and there is no value in a separate type here.
+`identifier` would accept DOI, arXiv ID, ISBN, ISSN — the service auto-detects type. See `docs/feats/001-core-library.md` for the original `SearchResult` and `FetchResult` model shapes.
 
-## non-goals
+## non-goals (current)
 
-- Full-text search across abstract, keywords, or notes (→ semantic-search feature)
-- Field projection / include / exclude (→ future, or jq)
-- Publisher / ISSN / DOI filter (viable but not in confirmed use cases yet)
+- Full-text search across abstract, keywords, or notes (semantic search)
+- Field projection / include / exclude
+- Publisher / ISSN / DOI filter (viable but not in confirmed use cases)

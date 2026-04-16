@@ -1,5 +1,8 @@
 # feat: 025-skills-zip-distribution — packaged skill releases for Claude Desktop
 
+version: 0.1
+status: current
+
 ## problem
 
 Researchers using scholartools with Claude Desktop need to install the workflow skills

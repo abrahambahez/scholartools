@@ -1,6 +1,7 @@
 # feat 014: CLI build — standalone executables for Claude Desktop distribution
 
-## v0.1
+version: 0.1
+status: current
 
 ## what it is
 
@@ -30,7 +31,7 @@ Each archive contains a directory bundle (not a single fat binary) — faster st
 
 GitHub Actions matrix build — one runner per OS (macOS arm64, Linux x86_64, Windows x86_64), triggered on version tags (`v*`). Each runner produces its platform zip and uploads it as a release asset. The Linux runner additionally uploads `install.sh` and `install.ps1` as release assets. The version string is stamped into the binary from `pyproject.toml` at build time, surfaced via `scht --version`.
 
-PyInstaller is used to produce the bundles. Hidden imports for `pdfplumber`, `cryptography`, and the optional `minio` sync stack are declared explicitly in the build spec so they are included even when not directly imported at the entry point.
+PyInstaller is used to produce the bundles. Hidden imports for `pdfplumber` are declared explicitly in the build spec. The previous references to `cryptography` and `minio` hidden imports are removed — those dependencies were stripped from core in v0.13.0 (spec 027) and will not reappear until plugin zips are introduced.
 
 Environment variables (API keys, config paths) are entirely the user's responsibility at runtime — nothing is baked into the build.
 
