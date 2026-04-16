@@ -76,6 +76,16 @@ Use "ultrathink" for architecture decisions.
 - do not catch bare Exception — catch specific exception types at adapter boundaries
 - do not write business logic inside adapters — adapters translate, services decide
 
+## debugging protocol
+When a bug is reported, investigate in this order — stop at the layer that explains the symptom:
+
+1. **Environment / config** — is the tool pointed at the right file/dir? Check config, cwd, env vars before reading code
+2. **Data presence** — does the data source contain what is expected? Verify with a direct query (jq, grep, cat) before assuming logic is wrong
+3. **Data flow** — is the data reaching the function? Add a quick print or check the adapter, not the service
+4. **Code logic** — only after the above confirm data is correct and flowing, inspect predicates, transformations, and edge cases
+
+Never propose a code change before completing step 1 and 2.
+
 ## context
 - docs/product.md: what it is, who it's for, success criteria
 - docs/vision.md: aspirational long-term scope
