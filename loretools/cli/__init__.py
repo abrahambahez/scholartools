@@ -11,10 +11,26 @@ from loretools.cli import staging as _staging
 _GROUPS = ["refs", "extract", "files", "staging"]
 
 _DESCRIPTIONS = {
-    "refs": "manage references in the library",
-    "extract": "extract metadata from a local file",
-    "files": "manage files linked to references",
-    "staging": "manage staged references before merging",
+    "refs": (
+        "CRUD operations on committed library references. "
+        "A reference is an epistemic object (paper, dataset, recording, interview, field note, etc.) "
+        "stored with CSL-JSON metadata and identified by a citekey (e.g. smith2021)."
+    ),
+    "extract": (
+        "Parse a local file (PDF, ebook) and extract CSL-JSON metadata "
+        "ready for `staging stage` or `refs add`. "
+        "Falls back to agent_extraction_needed=true if automatic parsing fails "
+        "(vision-based fallback requires the loretools-llm plugin)."
+    ),
+    "files": (
+        "Attach, retrieve, move, or detach a file linked to a library reference by its citekey. "
+        "Files are copied into a managed archive; use `reindex` after any manual file operations."
+    ),
+    "staging": (
+        "Manage the evaluation layer before library promotion. "
+        "Stage incoming references for review, then merge into the library when ready. "
+        "The library only contains validated, deduplicated records; staging does not."
+    ),
 }
 
 
@@ -31,7 +47,13 @@ def _build_parser() -> argparse.ArgumentParser:
 
     parser = argparse.ArgumentParser(
         prog="lore",
-        description="loretools CLI",
+        description=(
+            "loretools — reference management for AI agents. "
+            "References are epistemic objects (papers, datasets, recordings, interviews, etc.) "
+            "stored with CSL-JSON metadata and optional attached files. "
+            "References flow from staging (evaluation) to library (production) via a validated merge step. "
+            "All commands output JSON."
+        ),
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {version}")
 
