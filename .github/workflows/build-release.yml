@@ -96,16 +96,13 @@ jobs:
         if: env.SKILLS_CHANGED == 'true'
         run: |
           for lang in en es; do
-            for skill_dir in skills/$lang/*/; do
-              skill_name=$(basename "$skill_dir")
-              cd skills/$lang
-              zip -r ../../loretools-$skill_name-$lang-${{ env.LORE_VERSION }}.zip $skill_name/
-              cd ../..
-            done
+            cd skills/$lang
+            zip -r ../../loretools-skills-$lang-${{ env.LORE_VERSION }}.zip */
+            cd ../..
           done
 
       - name: Upload skill zips
         if: env.SKILLS_CHANGED == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          files: loretools-*-${{ env.LORE_VERSION }}.zip
+          files: loretools-skills-*-${{ env.LORE_VERSION }}.zip

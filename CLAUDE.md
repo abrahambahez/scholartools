@@ -20,7 +20,7 @@
 ## CI/CD
 - the build-release workflow triggers ONLY on `v*` tags — pushing to main does NOT trigger it
 - to release: `git tag vX.Y.Z[-rcN] && git push origin vX.Y.Z[-rcN]`
-- skill zips (`loretools-{skill-name}-{lang}-vX.Y.Z.zip`, one per skill) are published automatically when any file under `skills/` changed since the previous tag; install scripts download them to the user's Documents folder
+- skill zips (`loretools-skills-{lang}-vX.Y.Z.zip`, one per language) are published automatically when any file under `skills/` changed since the previous tag; install scripts download them to the user's Documents folder
 
 ## changelog discipline
 - every CHANGELOG.md entry must follow "Keep a Changelog" with semantic versioning

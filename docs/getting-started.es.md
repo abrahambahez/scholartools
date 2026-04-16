@@ -20,50 +20,43 @@ Puedes crear una colección por proyecto de investigación (o una colección com
 
 ## Primera sesión: configurar tu colección
 
-### 1. Descarga el zip de la versión
+### 1. Descarga el binario
 
-Ve a la [página de Releases](https://github.com/abrahambahez/loretools/releases) y descarga el zip para tu plataforma:
+Ve a la [página de Releases](https://github.com/abrahambahez/loretools/releases) y descarga el binario para tu plataforma:
 
-- **macOS (Apple Silicon):** `scht-X.Y.Z-macos-arm64.zip`
-- **Linux:** `scht-X.Y.Z-linux-x86_64.zip`
-- **Windows:** `scht-X.Y.Z-windows-x86_64.zip`
+- **macOS (Apple Silicon):** `lore-macos-arm64`
+- **Linux:** `lore-linux-x86_64`
+- **Windows:** `lore-windows-x86_64.exe`
 
-### 2. Prepara tu carpeta de colección
+Renombra el archivo a `lore` y colócalo dentro de tu carpeta de colección.
 
-Crea o elige una carpeta para tu colección de investigación. Esta carpeta contendrá todas tus referencias y archivos — guárdala en un lugar que persista entre sesiones (por ejemplo, tu carpeta de Documentos, no un área de carga temporal).
+### 2. Copia el prompt de instalación
+
+Ve a la [página principal de loretools](https://github.com/abrahambahez/loretools) y copia el prompt de instalación.
 
 ### 3. Abre Claude Co-Work y monta tu carpeta de colección
 
 Abre Claude Projects y conecta tu carpeta de colección para que el agente pueda leer y escribir archivos allí.
 
-### 4. Sube el zip de la versión
+### 4. Sube el binario y pega el prompt de instalación
 
-Sube el archivo zip que descargaste en el paso 1 a tu sesión de Co-Work.
+Sube el binario `lore` a tu sesión de Co-Work y pega el prompt de instalación. El agente:
 
-### 5. Instala la skill `loretools-manager`
-
-Descarga el zip de la skill desde la misma página de Releases (`loretools-loretools-manager-es-X.Y.Z.zip` para español o la variante `en` para inglés) e instálala. Dile al agente:
-
-> "Por favor instala la skill loretools-manager desde este zip."
-
-### 6. Pide al agente que complete la configuración
-
-Una vez instalada la skill, di:
-
-> "Configura loretools en mi carpeta de colección."
-
-El agente:
-1. Descomprimirá `lore` y lo hará ejecutable
+1. Hará el binario ejecutable
 2. Lo ejecutará una vez para crear automáticamente `.lore/config.json`
-3. Verificará que la colección esté operativa
+3. Escribirá un `CLAUDE.md` en tu carpeta de colección para que las sesiones futuras arranquen automáticamente
+4. Verificará que la colección esté operativa
 
-### 7. Verifica que todo funciona
+### 5. Verifica que todo funciona
 
-Dile al agente:
+El agente confirmará la configuración ejecutando:
 
-> "Lista mis referencias."
+```
+./lore refs list
+./lore staging list-staged
+```
 
-Deberías ver una respuesta como `{"ok": true, "references": [], ...}`. Tu colección está lista.
+Ambos deben retornar `{"ok": true, ...}`. Tu colección está lista.
 
 ---
 
@@ -71,14 +64,8 @@ Deberías ver una respuesta como `{"ok": true, "references": [], ...}`. Tu colec
 
 Cada vez que abras una nueva sesión de Co-Work:
 
-1. Abre Claude Projects y monta tu carpeta de colección
-2. Pide al agente que verifique la colección:
-
-   > "Verifica que loretools esté funcionando."
-
-   El agente comprueba que `lore` esté presente y que la configuración sea válida.
-
-3. Comienza a trabajar — añade referencias, obtén metadatos, fusiona elementos en staging, etc.
+1. Monta tu carpeta de colección
+2. El agente lee `CLAUDE.md` y ejecuta la verificación automáticamente — sin necesidad de indicárselo
 
 ---
 
@@ -89,55 +76,47 @@ Tras la configuración, tu carpeta de colección tiene este aspecto:
 ```
 <tu-colección>/
   lore                          # el binario de loretools
+  CLAUDE.md                     # instrucciones para el agente (creado durante la instalación)
   .lore/
     config.json                 # configuración (creada automáticamente en el primer uso)
-    keys/                       # pares de claves Ed25519 (solo si usas sincronización)
   library.json                  # tu biblioteca de referencias
   files/                        # PDFs y documentos archivados
   staging.json                  # referencias en staging
   staging/                      # archivos en staging
 ```
 
-El agente siempre ejecuta `lore` desde esta carpeta, por lo que todas las rutas se resuelven correctamente sin ninguna configuración de PATH.
-
 ---
 
 ## Referencia de configuración
 
-`.lore/config.json` se crea automáticamente con valores predeterminados sensatos. Solo necesitas editarlo si quieres cambiar algo.
+`.lore/config.json` se crea automáticamente con valores predeterminados. Solo necesitas editarlo si quieres cambiar algo.
 
 | Campo | Predeterminado | Qué controla |
 |-------|----------------|--------------|
-| `backend` | `"local"` | Backend de almacenamiento. Déjalo como `"local"` para uso con Co-Work. |
-| `local.library_dir` | Carpeta de colección (CWD) | Dónde se almacenan `library.json`, `files/` y `staging/`. El valor predeterminado — la propia carpeta de colección — es correcto para Co-Work. |
-| `apis.email` | (ninguno) | Tu correo para los límites de tasa del grupo de cortesía de Crossref y OpenAlex. Recomendado. |
-| `llm.model` | `"claude-sonnet-4-6"` | Modelo Claude para extracción de texto de PDFs (PDFs escaneados). Requiere `ANTHROPIC_API_KEY`. |
-| `citekey.pattern` | `"{author[2]}{year}"` | Patrón para las claves de referencia generadas. |
+| `local.library_dir` | Carpeta de colección (CWD) | Dónde se almacenan `library.json`, `files/` y `staging/`. |
+| `citekey.pattern` | `"{author[2]}{year}"` | Patrón para los citekeys generados. Tokens: `{author[N]}` (primeros N apellidos), `{year}`. |
+| `citekey.separator` | `"_"` | Separador entre tokens de autor. |
+| `citekey.etal` | `"_etal"` | Sufijo cuando los autores superan el límite del patrón. |
+| `citekey.disambiguation_suffix` | `"letters"` | Cómo desambiguar claves duplicadas: `"letters"` (a/b/c) o `"title[1-9]"` (primeras N palabras del título). |
 
-### Claves de API
+---
 
-Las claves de API nunca se almacenan en `config.json`. Configúralas como variables de entorno en tu sesión de Co-Work:
+## Skills
 
-| Variable | Propósito |
-|----------|-----------|
-| `ANTHROPIC_API_KEY` | Extracción de PDFs mediante visión de Claude (PDFs escaneados) |
-| `GBOOKS_API_KEY` | Google Books como fuente de búsqueda |
-| `SEMANTIC_SCHOLAR_API_KEY` | Límites de tasa más altos en Semantic Scholar |
-
-Sin estas claves, la herramienta degrada de forma elegante: la extracción con LLM se omite, Google Books se desactiva.
+Para flujos de trabajo complejos — operaciones en masa, gestión de archivos, desambiguación de referencias — instala la skill `loretools-references`. Descarga el zip de la skill desde la página de Releases y pídele al agente que la instale.
 
 ---
 
 ## Resolución de problemas
 
-**`lore` no se encuentra tras la carga**
-Asegúrate de que el zip fue descomprimido y que el archivo resultante se llama `lore` (no `scht-X.Y.Z-plataforma`). Dile al agente: "Lista los archivos en la carpeta de colección."
+**`lore` no se encuentra**
+Confirma que la carpeta de colección está montada y que `lore` está presente. Dile al agente: "Lista los archivos en la carpeta de colección."
 
 **Permiso denegado al ejecutar `lore`**
-El binario necesita permiso de ejecución. Dile al agente: "Haz lore ejecutable con chmod +x."
+Dile al agente: "Haz lore ejecutable con chmod +x."
 
-**Configuración no encontrada o incompleta**
+**Configuración no encontrada**
 Ejecuta `./lore refs list` una vez — esto crea automáticamente `.lore/config.json` si no existe.
 
-**Las operaciones de biblioteca fallan en el primer uso**
-`library.json` y `staging.json` se crean automáticamente en la primera escritura (primer `merge` o `add`). Es normal obtener resultados vacíos antes de eso.
+**Biblioteca vacía en el primer uso**
+`library.json` y `staging.json` se crean en la primera escritura. Es normal obtener resultados vacíos antes de eso.
