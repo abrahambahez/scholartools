@@ -144,70 +144,45 @@
       <!-- Research workflow -->
       <section class="px-6 py-20 md:px-12 lg:px-24 border-b-2 border-structural-black bg-parchment">
         <div class="max-w-6xl mx-auto">
-          <p class="text-xs font-bold uppercase opacity-50 mb-12">Research workflow</p>
+          <p class="text-xs font-bold uppercase opacity-50 mb-12">Research workflow — core</p>
           <div class="brutalist-grid">
 
             <div class="brutalist-grid-item journey-card">
               <span class="journey-num">01</span>
-              <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 1rem;">
-                <h3 class="text-2xl font-bold uppercase" style="margin: 0;">Discover</h3>
-                <span style="font-size: 0.6rem; font-family: var(--font-mono); opacity: 0.45; border: 1px solid currentColor; padding: 0.1rem 0.35rem;">[plugin]</span>
-              </div>
+              <h3 class="text-2xl font-bold mb-4 uppercase">Extract</h3>
               <div class="journey-layer">
                 <span class="layer-label layer-label--human">human</span>
-                <span class="layer-content layer-content--human">"Find recent papers on transformer attention"</span>
+                <span class="layer-content layer-content--human">"Pull the metadata from this PDF"</span>
               </div>
               <div class="journey-layer">
                 <span class="layer-label layer-label--agent">agent</span>
-                <span class="layer-content layer-content--agent">Searching Semantic Scholar, arXiv, and more sources…</span>
+                <span class="layer-content layer-content--agent">Got it — title, authors, year, DOI extracted locally. No network needed.</span>
               </div>
               <div class="journey-layer layer--cli">
                 <span class="layer-label layer-label--cli">cli</span>
-                <code class="layer-content layer-content--cli">lore discover "transformer attention"</code>
+                <code class="layer-content layer-content--cli">lore extract paper.pdf</code>
               </div>
             </div>
 
             <div class="brutalist-grid-item journey-card">
               <span class="journey-num">02</span>
-              <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 1rem;">
-                <h3 class="text-2xl font-bold uppercase" style="margin: 0;">Fetch &amp; Extract</h3>
-                <span style="font-size: 0.6rem; font-family: var(--font-mono); opacity: 0.45; border: 1px solid currentColor; padding: 0.1rem 0.35rem;">[plugin]</span>
-              </div>
+              <h3 class="text-2xl font-bold mb-4 uppercase">Stage</h3>
               <div class="journey-layer">
                 <span class="layer-label layer-label--human">human</span>
-                <span class="layer-content layer-content--human">"Get the full record for this DOI"</span>
+                <span class="layer-content layer-content--human">"Hold this for review — don't commit yet"</span>
               </div>
               <div class="journey-layer">
                 <span class="layer-label layer-label--agent">agent</span>
-                <span class="layer-content layer-content--agent">Got it. Title, authors, abstract, DOI — all in one
-                  clean record.</span>
+                <span class="layer-content layer-content--agent">Saved to staging with the file attached. Nothing in the library yet.</span>
               </div>
               <div class="journey-layer layer--cli">
                 <span class="layer-label layer-label--cli">cli</span>
-                <code class="layer-content layer-content--cli">lore fetch 10.48550/arXiv.1706.03762</code>
+                <code class="layer-content layer-content--cli">lore staging stage '&lt;json&gt;' --file paper.pdf</code>
               </div>
             </div>
 
             <div class="brutalist-grid-item journey-card">
               <span class="journey-num">03</span>
-              <h3 class="text-2xl font-bold mb-4 uppercase">Stage</h3>
-              <div class="journey-layer">
-                <span class="layer-label layer-label--human">human</span>
-                <span class="layer-content layer-content--human">"Save these to review before committing"</span>
-              </div>
-              <div class="journey-layer">
-                <span class="layer-label layer-label--agent">agent</span>
-                <span class="layer-content layer-content--agent">Saved to staging. Nothing committed yet — you're still
-                  in control.</span>
-              </div>
-              <div class="journey-layer layer--cli">
-                <span class="layer-label layer-label--cli">cli</span>
-                <code class="layer-content layer-content--cli">lore staging list-staged</code>
-              </div>
-            </div>
-
-            <div class="brutalist-grid-item journey-card">
-              <span class="journey-num">04</span>
               <h3 class="text-2xl font-bold mb-4 uppercase">Merge</h3>
               <div class="journey-layer">
                 <span class="layer-label layer-label--human">human</span>
@@ -215,8 +190,7 @@
               </div>
               <div class="journey-layer">
                 <span class="layer-label layer-label--agent">agent</span>
-                <span class="layer-content layer-content--agent">Added to the library. Duplicates removed, citekeys
-                  assigned.</span>
+                <span class="layer-content layer-content--agent">Done. Duplicates removed, citekeys assigned, files archived.</span>
               </div>
               <div class="journey-layer layer--cli">
                 <span class="layer-label layer-label--cli">cli</span>
@@ -225,16 +199,32 @@
             </div>
 
             <div class="brutalist-grid-item journey-card">
+              <span class="journey-num">04</span>
+              <h3 class="text-2xl font-bold mb-4 uppercase">Search &amp; Filter</h3>
+              <div class="journey-layer">
+                <span class="layer-label layer-label--human">human</span>
+                <span class="layer-content layer-content--human">"What do I have on boundary objects from 2019?"</span>
+              </div>
+              <div class="journey-layer">
+                <span class="layer-label layer-label--agent">agent</span>
+                <span class="layer-content layer-content--agent">3 references. star1989 has a file attached — want me to open it?</span>
+              </div>
+              <div class="journey-layer layer--cli">
+                <span class="layer-label layer-label--cli">cli</span>
+                <code class="layer-content layer-content--cli">lore refs filter --query "boundary objects" --year 2019</code>
+              </div>
+            </div>
+
+            <div class="brutalist-grid-item journey-card">
               <span class="journey-num">05</span>
-              <h3 class="text-2xl font-bold mb-4 uppercase">File Archive</h3>
+              <h3 class="text-2xl font-bold mb-4 uppercase">Files</h3>
               <div class="journey-layer">
                 <span class="layer-label layer-label--human">human</span>
                 <span class="layer-content layer-content--human">"Attach this PDF to the reference"</span>
               </div>
               <div class="journey-layer">
                 <span class="layer-label layer-label--agent">agent</span>
-                <span class="layer-content layer-content--agent">PDF linked. vaswani2017 now has a file you can open or
-                  extract.</span>
+                <span class="layer-content layer-content--agent">PDF archived under vaswani2017. Linked and ready to read.</span>
               </div>
               <div class="journey-layer layer--cli">
                 <span class="layer-label layer-label--cli">cli</span>
