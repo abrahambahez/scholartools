@@ -19,7 +19,7 @@ loretools is a Python library for managing epistemic objects and the knowledge d
 
 The **core** is guaranteed to work identically everywhere Python runs. It has zero network dependencies, zero external authentication requirements, and deterministic behavior. It is useful in isolation — in air-gapped environments, in sandboxed agents, in contexts where network calls are blocked. The core is what you get when you install `loretools` with no extras.
 
-**Plugins** extend the core for specific environments and use cases. A search plugin adds the ability to query Crossref or Semantic Scholar. A cloud plugin adds a DynamoDB/S3 backend. A sync plugin adds distributed peer coordination. An LLM plugin adds vision-based PDF extraction. None of these are privileged — a plugin for a community archive has exactly the same architectural standing as one for an academic index. Plugins are installed as needed, or not at all.
+**Plugins** extend the core for specific environments and use cases. A search plugin adds the ability to query Crossref or Semantic Scholar. A cloud plugin adds a DynamoDB/S3 backend. A sync plugin adds distributed peer coordination. None of these are privileged — a plugin for a community archive has exactly the same architectural standing as one for an academic index. Plugins are installed as needed, or not at all.
 
 The library operates across two coupled layers:
 
@@ -69,7 +69,6 @@ Existing reference managers — Zotero, Mendeley, JabRef — are designed for hu
 **Plugin-provided operations** *(require explicit plugin installation)*
 - **search** `[plugin: loretools-search]` — query external reference indexes (Crossref, Semantic Scholar, OpenAlex, community archives) and return staged candidates; the plugin defines which sources it speaks to — no academic index is built in by default
 - **fetch** `[plugin: loretools-search]` — retrieve full bibliographic metadata for a known identifier (DOI, arXiv ID, ISBN) from external APIs
-- **LLM extraction** `[plugin: loretools-llm]` — vision-based fallback extraction for scanned or complex PDFs where local extraction fails; also enables LLM-assisted synthesis and concept inference in the knowledge layer
 - **cloud backends** `[plugin: loretools-cloud]` — DynamoDB/S3, MongoDB/GCS storage backends; switching from local to cloud requires this plugin
 - **sync** `[plugin: loretools-sync]` — distributed peer coordination, blob sync, multi-device library state
 

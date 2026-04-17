@@ -11,8 +11,8 @@ Reference objects, result types, config, and API responses are all Pydantic mode
 ### pdfplumber for PDF extraction
 Best-in-class text extraction for structured (text-based) PDFs. Used as the primary extraction path for any PDF with selectable text. This is a **core dependency** — it is local, deterministic, and has no network requirement.
 
-### Anthropic SDK for LLM/vision extraction *(plugin only)*
-Fallback for scanned or complex PDFs where pdfplumber yields garbage, and for LLM-assisted knowledge layer operations (synthesis, concept inference). Lives in `loretools-llm` — never imported by core. Core extraction works without it; the fallback path is simply unavailable.
+### Anthropic SDK for knowledge layer operations
+Used by the agent runtime for synthesis, concept inference, and reading complex PDFs when pdfplumber yields low-confidence results — the agent reads the file directly with native vision. Core returns `agent_extraction_needed: True` as the signal; the agent handles it. No Anthropic SDK import in core.
 
 ### httpx for external API calls *(plugin only)*
 Async-native HTTP client. Used by plugin packages (`loretools-search`, `loretools-cloud`, `loretools-sync`) for their external calls. **Core has no httpx dependency.** This is the portability invariant made concrete: if a module imports httpx, it belongs in a plugin.
@@ -50,8 +50,7 @@ The architecture has a hard boundary between **core** and **plugins**:
   ┌─────────────────┐    ╔══════════════════════════════════╗
   │  LOCAL ADAPTERS │    ║  PLUGIN ADAPTERS (ext. packages) ║
   │  adapters/      │    ║  loretools-search             ║
-  └─────────────────┘    ║  loretools-llm                ║
-                         ║  loretools-cloud              ║
+  └─────────────────┘    ║  loretools-cloud              ║
                          ║  loretools-sync               ║
                          ╚══════════════════════════════════╝
 ```
