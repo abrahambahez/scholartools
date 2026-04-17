@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.1] - 2026-04-16
+
+### Fixed
+- CI: removed `--extra sync` from `uv sync` — the `sync` optional-dependency group was stripped in the core-only refactor (spec-027) and no longer exists
+
 ## [0.14.0] - 2026-04-16
 
 ### Added
