@@ -283,7 +283,7 @@ class ReadResult(BaseModel):
     citekey: str
     output_path: str | None = None
     format: Literal["md", "txt"] | None = None
-    method: Literal["pymupdf4llm", "pymupdf"] | None = None
+    method: Literal["pymupdf4llm", "pymupdf", "markitdown"] | None = None
     quality_score: float | None = None
     page_count: int | None = None
     error: str | None = None

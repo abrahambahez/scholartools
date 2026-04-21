@@ -5,10 +5,11 @@ import sys
 
 from loretools.cli import extract as _extract
 from loretools.cli import files as _files
+from loretools.cli import read as _read
 from loretools.cli import refs as _refs
 from loretools.cli import staging as _staging
 
-_GROUPS = ["refs", "extract", "files", "staging"]
+_GROUPS = ["refs", "extract", "files", "staging", "read"]
 
 _DESCRIPTIONS = {
     "refs": (
@@ -29,6 +30,10 @@ _DESCRIPTIONS = {
         "Manage the evaluation layer before library promotion. "
         "Stage incoming references for review, then merge into the library when ready. "
         "The library only contains validated, deduplicated records; staging does not."
+    ),
+    "read": (
+        "Convert an attached source file to agent-readable text. "
+        "Output is cached in sources/read/ and reused on subsequent calls."
     ),
 }
 
@@ -63,6 +68,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "extract": _extract.register,
         "files": _files.register,
         "staging": _staging.register,
+        "read": _read.register,
     }
 
     for group in _GROUPS:

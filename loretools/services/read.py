@@ -6,6 +6,8 @@ import pymupdf4llm
 
 from loretools.models import LibraryCtx, ReadBatchResult, ReadResult
 
+_PDF_SUFFIXES = {".pdf"}
+_MARKITDOWN_SUFFIXES = {".epub", ".docx", ".doc", ".html", ".htm", ".pptx"}
 _QUALITY_THRESHOLD = 0.4
 _CHARS_PER_PAGE_DIVISOR = 500
 _EMPTY_HEADER_THRESHOLD = 10
@@ -29,6 +31,16 @@ def _check_quality(text: str, page_count: int) -> float:
         empty_header_ratio = empty_count / len(headers)
 
     return density_score * (1.0 - empty_header_ratio * 0.5)
+
+
+async def _convert_with_markitdown(file_path: str) -> tuple[str, str]:
+    try:
+        from markitdown import MarkItDown
+
+        md = MarkItDown().convert(file_path).text_content
+        return md, ""
+    except Exception as e:
+        return "", str(e)
 
 
 async def _convert_with_pymupdf4llm(
@@ -89,6 +101,27 @@ async def read_reference(
     file_path = Path(raw_path) if Path(raw_path).is_absolute() else sources_raw_dir / raw_path
     if not file_path.exists():
         return ReadResult(citekey=citekey, error=f"file not found: {file_path}")
+
+    suffix = file_path.suffix.lower()
+
+    if suffix in _MARKITDOWN_SUFFIXES:
+        md, err = await _convert_with_markitdown(str(file_path))
+        if err:
+            return ReadResult(citekey=citekey, error=f"markitdown conversion failed: {err}")
+        sources_read_dir.mkdir(parents=True, exist_ok=True)
+        out = sources_read_dir / f"{citekey}.source.md"
+        out.write_text(md, encoding="utf-8")
+        return ReadResult(
+            citekey=citekey,
+            output_path=str(out),
+            format="md",
+            method="markitdown",
+            quality_score=_check_quality(md, 1),
+            page_count=None,
+        )
+
+    if suffix not in _PDF_SUFFIXES:
+        return ReadResult(citekey=citekey, error=f"unsupported format: {suffix}")
 
     try:
         with pymupdf.open(str(file_path)) as doc:

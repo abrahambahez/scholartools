@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `read_reference(citekey)` and `read_references(citekeys)` — knowledge layer entry point: extracts full text from archived reference files using pymupdf4llm (structured Markdown) with automatic fallback to pymupdf (flat text) when quality checks fail
 - `ReadResult` and `ReadBatchResult` models with `format`, `method`, and `quality_score` fields
+- `markitdown[epub]` adapter for EPUB, DOCX, HTML source files in `read_reference` — non-PDF files now convert without error
+- `lore read <citekey>` CLI command — invokes `read_reference` and prints `ReadResult` as JSON; exits 1 on error; `--force` flag bypasses cache
 
 ### Changed
 - **BREAKING:** `sources/raw/` replaces `files/` as the raw file archive directory. Existing libraries must move their `files/` directory to `sources/raw/` before upgrading.
