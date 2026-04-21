@@ -475,3 +475,20 @@ decisions:
     as a more concrete near-term deliverable
 broken: none
 next: tag v0.14.0 and push to main
+
+--- [2026-04-20] session spec-030-markitdown-read-adapter ---
+completed:
+  - spec-030: markitdown adapter for non-PDF sources in read_reference
+    - Added markitdown[epub]>=0.1.5 dependency
+    - ReadResult.method now includes "markitdown" literal
+    - _convert_with_markitdown with lazy import and exception handling
+    - Dispatch-by-extension in read_reference: EPUB/DOCX/HTML → markitdown, PDF → pymupdf (unchanged)
+    - lore read <citekey> [--force] CLI command registered
+    - 21 unit tests covering all spec acceptance criteria (275 total pass)
+    - CHANGELOG [Unreleased] updated
+pending: none
+decisions:
+  - PDF path left entirely unchanged; markitdown only adds new dispatch branch
+  - Lazy import of markitdown inside _convert_with_markitdown to keep startup fast
+broken: none
+next: tag release when ready
